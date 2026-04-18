@@ -15,9 +15,9 @@ CONFIG_DIR  := config
 # Target executable
 TARGET := $(BIN_DIR)/game
 
-# 1. Recursive Source Finding
-# Secara otomatis mencari semua file .cpp di dalam src/ dan semua sub-foldernya
-SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+## 1. Recursive Source Finding (Windows-friendly)
+## Mengambil semua file .cpp di src sampai 3 level subfolder
+SRCS := $(wildcard $(SRC_DIR)/*.cpp $(SRC_DIR)/*/*.cpp $(SRC_DIR)/*/*/*.cpp)
 
 # 2. Dynamic Object Mapping
 # Mengubah path src/xxx/yyy.cpp menjadi build/xxx/yyy.o
@@ -52,4 +52,15 @@ clean:
 # Rebuild everything from scratch
 rebuild: clean all
 
-.PHONY: all clean rebuild run directories
+.PHONY: all clean rebuild run directories test_config
+
+# Untuk testing config-loader
+run_test_config: directories
+	$(CXX) $(CXXFLAGS) \
+	testing/test_config_loader.cpp \
+	src/models/ConfigData.cpp \
+	src/utils/ConfigLoader.cpp \
+	src/utils/FileHelper.cpp \
+	-o $(BIN_DIR)/test_config_loader
+	./$(BIN_DIR)/test_config_loader
+
