@@ -19,10 +19,7 @@ ConfigData ConfigLoader::loadAll(const string& folderPath){
 
 map<string, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lines){
     map<string, PropertiConfig> propMap;
-    int jumlahStreet = 0;
-    int jumlahRailroad = 0;
-    int jumlahUtility = 0;
-
+   
     for (const string& line : lines) {
         if (line.empty()) {
             continue;
@@ -50,7 +47,6 @@ map<string, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lin
             
             PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, upgRumah, upgHotel, rent);
             propMap[kode] = prop;
-            jumlahStreet++;
             
         } else if (jenis == "RAILROAD") {
             int hargaLahan, nilaiGadai;
@@ -63,7 +59,6 @@ map<string, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lin
             vector<int> rent(6, 0); //0 0 0 0 0 0
             PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, 0, 0, rent);
             propMap[kode] = prop;
-            jumlahRailroad++;
             
         } else if (jenis == "UTILITY") {
             int hargaLahan, nilaiGadai;
@@ -76,14 +71,13 @@ map<string, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lin
             vector<int> rent(6, 0); //0 0 0 0 0 0
             PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, 0, 0, rent);
             propMap[kode] = prop;
-            jumlahUtility++;
         } else {
             continue;
         }
     }
 
-    // Harus tepat 28 properti: 22 STREET, 4 RAILROAD, 2 UTILITY.
-    if (propMap.size() != 28 || jumlahStreet != 22 || jumlahRailroad != 4 || jumlahUtility != 2) {
+    //handle kalau kosong
+    if (propMap.empty()) {
         throw FileTidakValidException();
     }
 
@@ -112,12 +106,18 @@ map<int, int> ConfigLoader::loadRailroad(const vector<string>& lines) {
         throw FileTidakValidException();
     }
 
-    //jumlah railroad wajib tepat key 1..4
-    if (result.size() != 4) {
-        throw FileTidakValidException();
+    //handle key railroad harus berurutan mulai dari 1 sampai n 
+    int expected = 1;
+    for (const auto& entry : result) {
+        if (entry.first != expected) {
+            throw FileTidakValidException();
+        }
+        expected++;
     }
-    for (int expected = 1; expected <= 4; expected++) {
-        if (result.find(expected) == result.end()) {
+
+    //sewa tidak boleh negatif.
+    for (const auto& entry : result) {
+        if (entry.second < 0) {
             throw FileTidakValidException();
         }
     }
@@ -146,12 +146,18 @@ map<int, int> ConfigLoader::loadUtility(const vector<string>& lines) {
         throw FileTidakValidException();
     }
     
-    //jumlah utility wajib tepat key 1..2
-    if (result.size() != 2) {
-        throw FileTidakValidException();
+    //handle key utility harus berurutan mulai dari 1 sampai n 
+    int expected = 1;
+    for (const auto& entry : result) {
+        if (entry.first != expected) {
+            throw FileTidakValidException();
+        }
+        expected++;
     }
-    for (int expected = 1; expected <= 2; expected++) {
-        if (result.find(expected) == result.end()) {
+
+    //pengali tidak boleh negatif.
+    for (const auto& entry : result) {
+        if (entry.second < 0) {
             throw FileTidakValidException();
         }
     }
