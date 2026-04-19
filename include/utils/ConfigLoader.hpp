@@ -1,6 +1,6 @@
+#pragma once
 #include "models/ConfigData.hpp"
 #include <string>
-#pragma once
 
 class ConfigLoader{
 public:

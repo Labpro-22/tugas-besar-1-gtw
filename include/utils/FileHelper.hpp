@@ -1,6 +1,6 @@
+#pragma once
 #include <vector>
 #include <string>
-#pragma once
 
 class FileHelper{
 public:

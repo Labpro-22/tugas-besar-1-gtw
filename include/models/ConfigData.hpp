@@ -1,8 +1,8 @@
+#pragma once
 #include <map>
 #include <vector>
 #include <string>
 #include <utility>
-#pragma once
 
 class PropertiConfig{
 private:
