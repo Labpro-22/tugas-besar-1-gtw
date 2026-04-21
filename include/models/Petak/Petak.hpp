@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
-#include "../PlayerActionService.hpp"
-#include "../Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+
 
 class Petak{
 protected:
@@ -18,7 +20,7 @@ public:
 
     const std::string& getNama() const;
 
-    const std::string getDisplayInfo() const;
+    std::string getDisplayInfo() const;
 
     virtual void onLanded(Pemain& pemain, PlayerActionService& actionService) = 0;
 
