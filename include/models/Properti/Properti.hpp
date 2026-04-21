@@ -1,23 +1,20 @@
 #pragma once
 #include <string>
 #include "models/Pemain.hpp"
+#include "models/ConfigData.hpp"
+
+class ManagerProperti;
 
 class Properti{
-protected:
-    std::string kode;
-    std::string nama_properti;
-    Pemain* pemilik;
+public:
     enum class StatusProperti{
         BANK,
         OWNED,
         MORTGAGED
     };
-    StatusProperti status;
+    Properti(const PropertiConfig& config);
 
-public:
-    Properti(const std::string& kode, const std::string& nama_properti, Pemain* pemilik, StatusProperti status);
-
-    virtual int hitungSewa(int dadu) = 0;
+    virtual int hitungSewa(int dadu, ManagerProperti& manager) = 0;
 
     const std::string& getKode() const;
 
@@ -33,5 +30,13 @@ public:
 
     void batalGadai();
 
+    int getNilaiGadai() const;
+
     virtual ~Properti() = default;
+
+protected:
+    const PropertiConfig* config;
+    Pemain* pemilik;
+    StatusProperti status;
+
 };

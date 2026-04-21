@@ -1,15 +1,16 @@
 #include "models/Properti/Properti.hpp"
+#include "models/Properti/ManagerProperti.hpp"
 #include <string>
 
-Properti::Properti(const std::string& kode, const std::string& nama_properti, Pemain* pemilik, StatusProperti status) :
-    kode(kode), nama_properti(nama_properti), pemilik(pemilik), status(status){}
+Properti::Properti(const PropertiConfig& config) :
+    config(&config), pemilik(nullptr), status(StatusProperti::BANK){}
 
 const std::string& Properti::getKode() const{
-    return kode;
+    return config->getKode();
 }
 
 const std::string& Properti::getNamaProperti() const{
-    return nama_properti;
+    return config->getNama();
 }
 
 Properti::StatusProperti Properti::getStatus() const{
@@ -31,4 +32,8 @@ void Properti::gadai(){
 
 void Properti::batalGadai(){
     status = StatusProperti::OWNED;
+}
+
+int Properti::getNilaiGadai() const {
+    return config->getNilaiGadai();
 }
