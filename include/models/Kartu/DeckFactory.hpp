@@ -30,7 +30,7 @@ inline int randRange(int lo, int hi) {
 
 inline void isiDeckSkill(DeckKartu<KartuKemampuanSpesial>& deck, bool includeBonus = true) {
     for (int i = 0; i < 4; ++i) {
-        deck.tambahKeKartu(new MoveCard(randRange(1, 6)));
+        deck.tambahKeKartu(new MoveCard(randRange(1, 12)));
     }
     for (int i = 0; i < 3; ++i) {
         deck.tambahKeKartu(new DiscountCard(randRange(1, 5) * 10));

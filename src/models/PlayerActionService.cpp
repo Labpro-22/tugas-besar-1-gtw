@@ -110,7 +110,7 @@ void PlayerActionService::jailOpponent(Pemain& pemain) {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     sendToJail(*aktif[pilihan - 1]);
-    logAksi(pemain, "KARTU", "PenjaraKanCard → " + aktif[pilihan-1]->getUsername());
+    logAksi(pemain, "KARTU", "PenjaraKanCard " + aktif[pilihan-1]->getUsername());
 }
 
 void PlayerActionService::bayarSewa(Pemain& penyewa, Properti& properti, int nilaiDadu) {
@@ -154,7 +154,7 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
         if (street && street->getJumlahBangunan() > 0) punyaBangunan.push_back(street);
     }
     if (punyaBangunan.empty()) {
-        std::cout << target->getUsername() << " tidak punya properti dengan bangunan.\n";
+        std::cout << target->getUsername() << " tidak punya properti Street dengan bangunan " << "\n";
         return;
     }
 
@@ -172,10 +172,13 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
     }
     PropertiStreet* dipilih = punyaBangunan[pilihanProperti - 1];
 
-    // hancurkan satu bangunan
-    dipilih->turunkanBangunan();
-    std::cout << "[DemolitionCard] Satu bangunan di " << dipilih->getNamaProperti() << " milik " << target->getUsername() << " telah dihancurkan.\n";
-    logAksi(pemain, "KARTU", "DemolitionCard → " + dipilih->getKode() + " milik " + target->getUsername());
+    // hancurkan semua bangunan
+    int jumlahSebelum = dipilih->getJumlahBangunan();
+    while (dipilih->getJumlahBangunan() > 0) {
+        dipilih->turunkanBangunan();
+    }
+    std::cout << "[DemolitionCard] Semua bangunan (" << jumlahSebelum << (jumlahSebelum == 5 ? " — hotel" : " rumah") << ") di " << dipilih->getNamaProperti() << " milik " << target->getUsername() << " telah dihancurkan.\n";
+    logAksi(pemain, "KARTU", "DemolitionCard " + dipilih->getKode() + " milik " + target->getUsername());
 }
 
 void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
@@ -198,7 +201,9 @@ void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
     }
     std::cout << target->getUsername() << " ditarik ke posisi " << pemain.getUsername() << " (petak " << posiSaya << ").\n";
     target->setPosisi(posiSaya);
-    logAksi(pemain, "KARTU", "LassoCard → tarik " + target->getUsername() + " ke petak " + std::to_string(posiSaya));
+    // TODO (integrasi): panggil papan->getPetak(posiSaya)->onLanded(*target, svc)
+    // agar efek petak (sewa, kartu, dll.) terjadi pada target yang ditarik
+    logAksi(pemain, "KARTU", "LassoCard : tarik " + target->getUsername() + " ke petak " + std::to_string(posiSaya));
 }
 
 void PlayerActionService::rotateAllHandCards(Pemain& pemain) {
@@ -224,5 +229,5 @@ void PlayerActionService::rotateAllHandCards(Pemain& pemain) {
 void PlayerActionService::reverseTurnOrder(Pemain& pemain) {
     arahNormal = !arahNormal;
     std::cout << "[ReverseCard] Urutan giliran kini " << (arahNormal ? "normal (searah jarum jam).\n" : "terbalik!\n");
-    logAksi(pemain, "KARTU", arahNormal ? "ReverseCard → normal" : "ReverseCard → terbalik");
+    logAksi(pemain, "KARTU", arahNormal ? "ReverseCard (normal)" : "ReverseCard (terbalik)");
 }
