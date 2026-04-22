@@ -1,6 +1,5 @@
 #include "models/PlayerActionService.hpp"
-#include "models/Properti/Properti.hpp"
-#include "models/Properti/PropertiStreet.hpp"
+#include "models/Properti/ManagerProperti.hpp"
 #include "models/Pemain.hpp"
 #include "utils/LogTransaksiGame.hpp"
 #include "utils/NimonspoliException.hpp"
@@ -128,7 +127,55 @@ void PlayerActionService::bangunProperti(Pemain& pemain, PropertiStreet& propert
 }
 
 void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
-    logAksi(pemain, "KARTU", "DemolitionCard");
+    std::vector<Pemain*> aktif;
+    for (Pemain* p : *daftarPemain) {
+        if (p != &pemain && p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
+    }
+    if (aktif.empty()) {
+        std::cout << "Tidak ada pemain lain yang aktif.\n";
+        return;
+    }
+
+    // pilih target pemain
+    std::cout << "Pilih pemain yang propertinya ingin dihancurkan:\n";
+    for (size_t i = 0; i < aktif.size(); ++i)
+        std::cout << "  " << (i+1) << ". " << aktif[i]->getUsername() << "\n";
+    int pilihanPemain = 0;
+    while (pilihanPemain < 1 || pilihanPemain > static_cast<int>(aktif.size())) {
+        std::cout << "Pilih (1-" << aktif.size() << "): ";
+        std::cin >> pilihanPemain;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    Pemain* target = aktif[pilihanPemain - 1];
+
+    std::vector<PropertiStreet*> punyaBangunan;
+    for (Properti* p : target->getAsetPemain()) {
+        auto* street = dynamic_cast<PropertiStreet*>(p);
+        if (street && street->getJumlahBangunan() > 0) punyaBangunan.push_back(street);
+    }
+    if (punyaBangunan.empty()) {
+        std::cout << target->getUsername() << " tidak punya properti dengan bangunan.\n";
+        return;
+    }
+
+    std::cout << "Pilih properti yang bangunannya ingin dihancurkan:\n";
+    for (size_t i = 0; i < punyaBangunan.size(); ++i) {
+        PropertiStreet* s = punyaBangunan[i];
+        std::cout << "  " << (i+1) << ". " << s->getNamaProperti() << " (" << s->getKode() << ")" << " — " << (s->punyaHotel() ? "Hotel" : std::to_string(s->getJumlahBangunan()) + " rumah") << "\n";
+    }
+
+    int pilihanProperti = 0;
+    while (pilihanProperti < 1 || pilihanProperti > static_cast<int>(punyaBangunan.size())) {
+        std::cout << "Pilih (1-" << punyaBangunan.size() << "): ";
+        std::cin >> pilihanProperti;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    PropertiStreet* dipilih = punyaBangunan[pilihanProperti - 1];
+
+    // hancurkan satu bangunan
+    dipilih->turunkanBangunan();
+    std::cout << "[DemolitionCard] Satu bangunan di " << dipilih->getNamaProperti() << " milik " << target->getUsername() << " telah dihancurkan.\n";
+    logAksi(pemain, "KARTU", "DemolitionCard → " + dipilih->getKode() + " milik " + target->getUsername());
 }
 
 void PlayerActionService::pullPlayerAhead(Pemain& pemain) {

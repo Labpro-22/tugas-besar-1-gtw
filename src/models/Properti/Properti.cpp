@@ -1,5 +1,4 @@
 #include "models/Properti/Properti.hpp"
-#include "models/Properti/ManagerProperti.hpp"
 #include <string>
 
 Properti::Properti(const PropertiConfig& config) :
