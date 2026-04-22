@@ -29,13 +29,13 @@ bool Pemain::operator>(const Pemain& other) const{
     if (saldo != other.saldo) return saldo > other.saldo;
     if (asetPemain.size() != other.asetPemain.size()) return asetPemain.size() > other.asetPemain.size();
     if (kartuDiTangan.size() != other.kartuDiTangan.size()) return kartuDiTangan.size() > other.kartuDiTangan.size();
-    return true;
+    return false;
 }
 bool Pemain::operator<(const Pemain& other) const{ 
     if (saldo != other.saldo) return saldo < other.saldo;
     if (asetPemain.size() != other.asetPemain.size()) return asetPemain.size() < other.asetPemain.size();
     if (kartuDiTangan.size() != other.kartuDiTangan.size()) return kartuDiTangan.size() < other.kartuDiTangan.size();
-    return true;
+    return false;
 }
 
 // kartu management 

@@ -182,27 +182,41 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
 }
 
 void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
-    // cari pemain aktif yang posisinya paling dekat di depan
     int posiSaya = pemain.getPosisi();
-    int totalPetak = 40;
-    Pemain* target = nullptr;
-    int jarakTerkecil = totalPetak + 1;
+    static constexpr int TOTAL_PETAK = 40;
+    std::vector<Pemain*> kandidat;
     for (Pemain* p : *daftarPemain) {
-        if (p == &pemain || p->getStatus() != StatusPemain::ACTIVE) continue;
-        int jarak = (p->getPosisi() - posiSaya + totalPetak) % totalPetak;
-        if (jarak > 0 && jarak < jarakTerkecil) {
-            jarakTerkecil = jarak;
-            target = p;
-        }
+        if (p == &pemain) continue;
+        if (p->getStatus() != StatusPemain::ACTIVE) continue; // skip JAILED
+        int jarak = (p->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        if (jarak > 0) kandidat.push_back(p);
     }
-    if (!target) {
-        std::cout << "Tidak ada pemain di depan kamu.\n";
+    if (kandidat.empty()) {
+        std::cout << "Tidak ada pemain aktif di depan kamu.\n";
         return;
     }
+
+    // urutkan dari yang terdekat
+    std::sort(kandidat.begin(), kandidat.end(), [&](Pemain* a, Pemain* b) {
+        int ja = (a->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        int jb = (b->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        return ja < jb;
+    });
+    std::cout << "Pilih pemain yang ingin ditarik ke posisi kamu (petak " << posiSaya << "):\n";
+    for (size_t i = 0; i < kandidat.size(); ++i) {
+        int jarak = (kandidat[i]->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        std::cout << "  " << (i+1) << ". " << kandidat[i]->getUsername() << " (petak " << kandidat[i]->getPosisi() << ", jarak " << jarak << ")\n";
+    }
+    int pilihan = 0;
+    while (pilihan < 1 || pilihan > static_cast<int>(kandidat.size())) {
+        std::cout << "Pilih (1-" << kandidat.size() << "): ";
+        std::cin >> pilihan;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    Pemain* target = kandidat[pilihan - 1];
     std::cout << target->getUsername() << " ditarik ke posisi " << pemain.getUsername() << " (petak " << posiSaya << ").\n";
     target->setPosisi(posiSaya);
-    // TODO (integrasi): panggil papan->getPetak(posiSaya)->onLanded(*target, svc)
-    // agar efek petak (sewa, kartu, dll.) terjadi pada target yang ditarik
+    // TODO (integrasi): papan->getPetak(posiSaya)->onLanded(*target, *this)
     logAksi(pemain, "KARTU", "LassoCard : tarik " + target->getUsername() + " ke petak " + std::to_string(posiSaya));
 }
 
