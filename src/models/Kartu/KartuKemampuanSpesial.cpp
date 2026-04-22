@@ -59,12 +59,12 @@ std::string LassoCard::getDeskripsi() const {
 
 DemolitionCard::DemolitionCard() : KartuKemampuanSpesial("DemolitionCard") {}
 void DemolitionCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[DemolitionCard] Hancurkan 1 bangunan milik pemain lawan.\n";
+    std::cout << "[DemolitionCard] Hancurkan semua bangunan milik pemain lawan.\n";
     // svc menampilkan daftar pemain dan properti bergambar, lalu dieksekusi
     svc.demolishOpponentProperty(pemain);
 }
 std::string DemolitionCard::getDeskripsi() const {
-    return "DemolitionCard - Hancurkan 1 bangunan properti lawan";
+    return "DemolitionCard - Hancurkan semua bangunan properti lawan";
 }
 
 
