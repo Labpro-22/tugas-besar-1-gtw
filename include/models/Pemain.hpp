@@ -1,10 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "models/Kartu/DeckKartu.hpp"
+#include "models/Kartu/KartuKemampuanSpesial.hpp"
 
 // Forward declaration
 class KartuKemampuanSpesial; 
-class Properti; 
+class Properti;
+class PlayerActionService; 
 
 enum class StatusPemain { ACTIVE, JAILED, BANKRUPT };
 
@@ -37,9 +40,9 @@ public:
     void setPosisi(int pos) { posisi = pos; }
 
     //kartu management 
-    void tambahKartu(KartuKemampuanSpesial* kartu);  
-    void buangKartu(int index);  //digunakan kalau kartuDiTangan penuh 
-    void gunakanKartu(int index); 
+    void tambahKartu(KartuKemampuanSpesial* kartuBaru, DeckKartu<KartuKemampuanSpesial>& deckSkill);  
+    void buangKartu(int index, DeckKartu<KartuKemampuanSpesial>& deckSkill);  //digunakan kalau kartuDiTangan penuh 
+    void gunakanKartu(int index, PlayerActionService& svc, DeckKartu<KartuKemampuanSpesial>& deckSkill, bool bolehPakaiSkill); 
 
     //status management
     void setStatus(const StatusPemain& s) { status = s; }
@@ -65,4 +68,8 @@ public:
     int  getPercobaanKeluarPenjara()    const { return percobaanKeluarPenjara; }
     const std::vector<KartuKemampuanSpesial*>& getKartuDiTangan() const { return kartuDiTangan; }
     const std::vector<Properti*>&              getAsetPemain()    const { return asetPemain ; }
+
+    void setKartuDiTangan(const std::vector<KartuKemampuanSpesial*>& kartu) {
+        kartuDiTangan = kartu;
+    }
 };
