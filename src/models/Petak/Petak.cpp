@@ -14,6 +14,6 @@ const std::string& Petak::getNama() const{
     return nama;
 }
 
-const std::string Petak::getDisplayInfo() const{
+std::string Petak::getDisplayInfo() const{
     return std::to_string(indeks) + " " + kode + " " + nama; 
 }

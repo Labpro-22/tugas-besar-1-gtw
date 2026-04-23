@@ -1,5 +1,5 @@
 #pragma once
-#include "models/ConfigData.hpp"
+#include "../models/ConfigData.hpp"
 #include <string>
 
 class ConfigLoader{

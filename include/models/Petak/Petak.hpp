@@ -3,6 +3,7 @@
 #include "../PlayerActionService.hpp"
 #include "../Pemain.hpp"
 
+
 class Petak{
 protected:
     int indeks;
@@ -18,7 +19,7 @@ public:
 
     const std::string& getNama() const;
 
-    const std::string getDisplayInfo() const;
+    std::string getDisplayInfo() const;
 
     virtual void onLanded(Pemain& pemain, PlayerActionService& actionService) = 0;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "models/Pemain.hpp"
-#include "models/ConfigData.hpp"
+#include "../Pemain.hpp"
+#include "../ConfigData.hpp"
 
 class ManagerProperti;
 

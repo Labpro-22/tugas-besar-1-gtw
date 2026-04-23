@@ -1,9 +1,9 @@
 #pragma once
 #include "Petak.hpp"
-#include "models/Properti/Properti.hpp"
+#include "../Properti/Properti.hpp"
 #include <string>
 
-class PetakProperti : public Petak{
+class PetakProperti : public Petak {
 protected:
     Properti* properti;
 

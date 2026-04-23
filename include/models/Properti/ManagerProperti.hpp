@@ -3,13 +3,13 @@
 #include "PropertiStreet.hpp"
 #include "PropertiRailroad.hpp"
 #include "PropertiUtility.hpp"
-#include "models/ConfigData.hpp"
+#include "../ConfigData.hpp"
 #include <vector>
 #include <string>
 
 class ManagerProperti{
 protected:
-    std::map<std::string, Properti*> daftarProperti;
+    std::map<int, Properti*> daftarProperti;
     const ConfigData& configData;
     
 public:
@@ -27,7 +27,7 @@ public:
 
     std::vector<PropertiStreet*> getPropertiByGrup(PropertiStreet::ColorGroup warna);
 
-    Properti* getProperti(const std::string& kode);
+    Properti* getProperti(int id);
 
     int hitungUtility(Pemain* pemain);
 

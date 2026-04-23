@@ -1,9 +1,9 @@
 #pragma once
-#include "models/Kartu/DeckKartu.hpp"
-#include "models/Kartu/Kartu.hpp"
-#include "models/Kartu/KartuKesempatan.hpp"
-#include "models/Kartu/KartuDanaUmum.hpp"
-#include "models/Kartu/KartuKemampuanSpesial.hpp"
+#include "DeckKartu.hpp"
+#include "Kartu.hpp"
+#include "KartuKesempatan.hpp"
+#include "KartuDanaUmum.hpp"
+#include "KartuKemampuanSpesial.hpp"
 #include <random>
 #include <memory>
 

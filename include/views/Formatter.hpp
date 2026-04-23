@@ -8,6 +8,7 @@
 #include <ctime>
 #include <iomanip>
 #include <map>
+#include "../models/ConfigData.hpp"
 
 // Forward declarations
 class Pemain;

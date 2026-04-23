@@ -6,13 +6,13 @@ ManagerProperti::ManagerProperti(const ConfigData& configData) :
         const PropertiConfig& cfg = pair.second;
 
         if(cfg.getJenis() == "STREET"){
-            daftarProperti[cfg.getKode()] = new PropertiStreet(cfg);
+            daftarProperti[cfg.getId()] = new PropertiStreet(cfg);
         }
         else if(cfg.getJenis() == "RAILROAD"){
-            daftarProperti[cfg.getKode()] = new PropertiRailroad(cfg);
+            daftarProperti[cfg.getId()] = new PropertiRailroad(cfg);
         }
         else if(cfg.getJenis() == "UTILITY"){
-            daftarProperti[cfg.getKode()] = new PropertiUtility(cfg);
+            daftarProperti[cfg.getId()] = new PropertiUtility(cfg);
         }
     }
     }
@@ -113,8 +113,8 @@ std::vector<PropertiStreet*> ManagerProperti::getPropertiByGrup(PropertiStreet::
     return result;
 }
 
-Properti* ManagerProperti::getProperti(const std::string& kode){
-    auto it = daftarProperti.find(kode);
+Properti* ManagerProperti::getProperti(int id){
+    auto it = daftarProperti.find(id);
     if(it != daftarProperti.end()){
         return it->second;
     }
