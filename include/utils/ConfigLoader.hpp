@@ -6,7 +6,8 @@ class ConfigLoader{
 public:
     static ConfigData loadAll(const std::string& folderPath);
 private:
-    static std::map<std::string, PropertiConfig> loadProperty(const std::vector<std::string>& lines);
+    static std::map<int, PropertiConfig> loadProperty(const std::vector<std::string>& lines);
+    static std::map<int, AksiConfig> loadAksi(const std::vector<std::string>& lines);
     static std::map<int, int> loadRailroad(const std::vector<std::string>& lines);
     static std::map<int, int> loadUtility(const std::vector<std::string>& lines);
 

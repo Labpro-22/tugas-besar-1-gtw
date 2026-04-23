@@ -8,6 +8,7 @@ using namespace std;
 
 ConfigData ConfigLoader::loadAll(const string& folderPath){
     auto prop = loadProperty(FileHelper::readAllLines(folderPath + "/property.txt"));
+    auto aksi = loadAksi(FileHelper::readAllLines(folderPath + "/aksi.txt"));
     auto rr = loadRailroad(FileHelper::readAllLines(folderPath + "/railroad.txt"));
     auto util = loadUtility(FileHelper::readAllLines(folderPath + "/utility.txt"));
     auto tax = loadTax(FileHelper::readAllLines(folderPath + "/tax.txt"));
@@ -15,11 +16,11 @@ ConfigData ConfigLoader::loadAll(const string& folderPath){
     auto misc = loadMisc(FileHelper::readAllLines(folderPath + "/misc.txt"));
 
     return ConfigData(tax.pphFlat, tax.pphPersen, tax.pbmFlat, sp.gajiGo, sp.dendaPenjara,
-                      misc.maxTurn, misc.uangAwal, move(prop), move(rr), move(util));
+                      misc.maxTurn, misc.uangAwal, move(prop), move(aksi), move(rr), move(util));
 }
 
-map<string, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lines){
-    map<string, PropertiConfig> propMap;
+map<int, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lines){
+    map<int, PropertiConfig> propMap;
    
     for (const string& line : lines) {
         if (line.empty()) {
@@ -47,31 +48,20 @@ map<string, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lin
             }
             
             PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, upgRumah, upgHotel, rent);
-            propMap[kode] = prop;
+            propMap[id] = prop;
             
-        } else if (jenis == "RAILROAD") {
-            int hargaLahan, nilaiGadai;
-            
-            if (!(iss >> hargaLahan >> nilaiGadai)) {
-                continue;
-            }
-            
+        } else if (jenis == "RAILROAD" || jenis == "UTILITY") {
             // Untuk railroad gada harga upgrade dan hargaSewa handled via railroad.txt
-            vector<int> rent(6, 0); //0 0 0 0 0 0
-            PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, 0, 0, rent);
-            propMap[kode] = prop;
-            
-        } else if (jenis == "UTILITY") {
+            // Begitu juga untuk utility gada harga upgrade dan hargaSewa tergantung faktor pengali handled via utility.txt
             int hargaLahan, nilaiGadai;
             
             if (!(iss >> hargaLahan >> nilaiGadai)) {
                 continue;
             }
-            
-            // Untuk utility gada harga upgrade dan hargaSewa tergantung faktor pengali handled via utility.txt
             vector<int> rent(6, 0); //0 0 0 0 0 0
             PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, 0, 0, rent);
-            propMap[kode] = prop;
+            propMap[id] = prop;
+            
         } else {
             continue;
         }
@@ -215,4 +205,35 @@ ConfigLoader::MiscData ConfigLoader::loadMisc(const vector<string>& lines) {
     }
     //handle kalau kosong
     throw FileTidakValidException();
+}
+
+map<int, AksiConfig> ConfigLoader::loadAksi(const vector<string>& lines){
+    map<int, AksiConfig> aksiMap;
+   
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        int id;
+        string kode;
+        string nama;
+        string jenis;
+        string warna;
+        
+        if (!(iss >> id >> kode >> nama >> jenis >> warna)) {
+            continue;
+        }
+        AksiConfig petakAksi(id, kode, nama, jenis, warna);
+        aksiMap[id] = petakAksi;
+
+    }
+
+    //handle kalau kosong
+    if (aksiMap.empty()) {
+        throw FileTidakValidException();
+    }
+
+    return aksiMap;
 }

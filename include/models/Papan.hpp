@@ -7,19 +7,12 @@
 #include "Properti/ManagerProperti.hpp"
 #include <vector>
 
-struct PetakInit {
-    int indeks;
-    std::string kode;
-    std::string nama;
-    std::string tipe;
-};
-
 class Papan{
 private:
     std::vector<Petak*> daftarPetak;
 
 public:
-    Papan(ManagerProperti& manager); 
+    Papan(ManagerProperti& manager, ConfigData& configData); 
 
     Petak* getPetak(int indeks);
 

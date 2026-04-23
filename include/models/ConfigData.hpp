@@ -39,10 +39,30 @@ public:
     const std::vector<int> &getHargaSewa() const;
     int getHargaSewa(int level) const;
 };
+class AksiConfig{
+private:
+    int id = 0;
+    std::string kode;
+    std::string nama;
+    std::string jenis;
+    std::string warna;
+public:
+    //default ctor
+    AksiConfig() = default;
+    //ctor
+    AksiConfig(int id, std::string kode, std::string nama, std::string jenis, std::string warna);
+    //getter
+    int getId() const;
+    const std::string &getKode() const;
+    const std::string &getNama() const;
+    const std::string &getJenis() const;
+    const std::string &getWarna() const;
+};
 
 class ConfigData{
 private:
-    std::map<std::string, PropertiConfig> propertiMap; //untuk setiap prop kode <-> its detail
+    std::map<int, PropertiConfig> propertiMap; //untuk setiap prop id <-> its detail
+    std::map<int, AksiConfig> aksiMap; //untuk setiap petak aksi id <-> its detail 
     std::map<int, int> hargaSewaRailroad; //untuk setiap jumlahRailroad
     std::map<int, int> pengaliUtility; //untuk setiap jumlahUtility
     int pphFlat;
@@ -55,12 +75,15 @@ private:
 public:
     //ctor
     ConfigData(int pphFlat, int pphPersen, int pbmFlat, int gajiGo, int dendaPenjara,
-               int maxTurn, int uangAwal, std::map<std::string, PropertiConfig> propertiMap,
+               int maxTurn, int uangAwal, std::map<int, PropertiConfig> propertiMap, std::map<int, AksiConfig> aksiMap,
                std::map<int, int> sewaRailroad, std::map<int, int> pengaliUtility);
 
     //getter
-    const std::map<std::string, PropertiConfig> &getPropertiMap() const;
-    const PropertiConfig &getPropertiMap(const std::string &kodeProperti) const;
+    const std::map<int, PropertiConfig> &getPropertiMap() const;
+    const PropertiConfig &getPropertiMap(const int &idProperti) const;
+
+    const std::map<int, AksiConfig> &getAksiMap() const;
+    const AksiConfig &getAksiMap(const int &idAksi) const;
 
     const std::map<int, int> &getHargaSewaRailroad() const;
     int getHargaSewaRailroad(int jumlahRailroad) const;

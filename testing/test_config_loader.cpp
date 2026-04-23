@@ -61,6 +61,21 @@ int main(){
             cout << endl;
             count++;
         }
+
+        cout << "\n=== AKSI DATA ===" << endl;
+        auto& aksiMap = config.getAksiMap();
+        cout << "Jumlah petak aksi: " << aksiMap.size() << endl;
+        cout << "\nSample petak aksi:" << endl;
+        count = 0;
+        for (const auto& entry : aksiMap) {
+            if (count >= 3) break;
+            const AksiConfig& aksi = entry.second;
+            cout << "\n  Kode: " << aksi.getKode() << endl;
+            cout << "  Nama: " << aksi.getNama() << endl;
+            cout << "  Jenis: " << aksi.getJenis() << endl;
+            cout << "  Warna: " << aksi.getWarna() << endl;
+            count++;
+        }
         
         cout << "\n=== CONFIG LOAD SUCCESS ===" << endl;
         return 0;
