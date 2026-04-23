@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "ConfigData.hpp"
+#include "Dadu.hpp"
 
 class Pemain;
 class PropertiStreet;
@@ -17,6 +19,7 @@ private:
     ManagerPenjara* managerPenjara;
     ManagerProperti* managerProperti;
     ManagerFestival* managerFestival;
+    ConfigData* config;
     LogTransaksiGame* logger;
 
     std::vector<Pemain*>* daftarPemain;
@@ -54,4 +57,6 @@ public:
     void logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail);
     bool isArahNormal() const { return arahNormal; }
     const std::vector<Pemain*>& getDaftarPemain() const { return *daftarPemain; }
+
+    ConfigData* getConfig() { return config; }
 };
