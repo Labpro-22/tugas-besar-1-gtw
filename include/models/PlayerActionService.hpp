@@ -3,6 +3,7 @@
 #include <vector>
 #include "ConfigData.hpp"
 #include "Dadu.hpp"
+#include "../core/BangkrutDanEndGame.hpp"
 
 class Pemain;
 class PropertiStreet;
@@ -52,6 +53,9 @@ public:
     void pullPlayerAhead(Pemain& pemain); // untuk LassoCard
     void rotateAllHandCards(Pemain& pemain); // untuk bonus RotasiKartuCard
     void reverseTurnOrder(Pemain& pemain); // untuk bonus ReverseCard
+
+    /* Buat Kebangkrutan */
+    void beriSemuaAset (Pemain* asal, Pemain *tujuan); // nullptr = bank
 
     void logFestivalActivation(Pemain& pemain, Properti& prop, int pengali, int durasi);
     void logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail);

@@ -1,21 +1,99 @@
 #pragma once
-#include "MoveTurnController.hpp"
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <random>
+#include <cstdlib>
+#include <ctime>
+#include "../models/ConfigData.hpp"
 #include "../models/Pemain.hpp"
-// include deck kartu
-// include papan
-// include log
+#include "../models/PlayerActionService.hpp"
+#include "../models/ManagerPenjara.hpp"
+#include "../models/Papan.hpp"
+#include "../models/Dadu.hpp"
+#include "../models/Properti/ManagerProperti.hpp"
+#include "../models/Kartu/Kartu.hpp"
+#include "../models/Kartu/DeckKartu.hpp"
+#include "../utils/LogTransaksiGame.hpp"
+#include "../views/Formatter.hpp"
+#include "BangkrutDanEndGame.hpp"
+using namespace std;
+
+// Forward declarations
+class Petak;
+class Properti;
+class PropertiStreet;
+template <typename T> class DeckKartu;
 
 class GameEngine {
 private :
-    vector<Pemain*> ListPemain;
-    // Papan PapanPermainan;
-    TurnController ManagerGiliran;
-    // LogTransaksiGame LogGame
-    // DeckKartu Deck
+    // Game Data
+    ConfigData* configData;
+    vector<Pemain*> listPemain;
+    Papan* papanPermainan;
+    LogTransaksiGame* logGame;
+    DeckKartu<Kartu>* deckKartu;
+    Dadu* dadu;
+    ManagerPenjara* managerPenjara;
+    ManagerProperti* managerProperti;
+    PlayerActionService* actionService;
+    
+    // Turn Management (dari TurnController)
+    vector<Pemain*> urutanPemain;
+    int currentTurnIndex;
+    int maxTurn;
+    bool arahNormalTurn;
 
 public :
-    void startGame ();
+    GameEngine();
+    ~GameEngine();
+    
+    void startGame();
+    
+    // Methods buat TurnController
+    void randomizeTurn();
+    void startTurn(Pemain* p, int currentTurn);
 
+    // Getter dan Setter untuk Game Data
+    ConfigData* getConfigData() const { return configData; }
+    void setConfigData(ConfigData* config) { this->configData = config; }
 
+    vector<Pemain*>& getListPemain() { return listPemain; }
+    void setListPemain(vector<Pemain*>& pemain) { this->listPemain = pemain; }
+
+    Papan* getPapanPermainan() const { return papanPermainan; }
+    void setPapanPermainan(Papan* papan) { this->papanPermainan = papan; }
+
+    LogTransaksiGame* getLogGame() const { return logGame; }
+    void setLogGame(LogTransaksiGame* log) { this->logGame = log; }
+
+    DeckKartu<Kartu>* getDeckKartu() const { return deckKartu; }
+    void setDeckKartu(DeckKartu<Kartu>* deck) { this->deckKartu = deck; }
+
+    Dadu* getDadu() const { return dadu; }
+    void setDadu(Dadu* d) { this->dadu = d; }
+
+    ManagerPenjara* getManagerPenjara() const { return managerPenjara; }
+    void setManagerPenjara(ManagerPenjara* manager) { this->managerPenjara = manager; }
+
+    ManagerProperti* getManagerProperti() const { return managerProperti; }
+    void setManagerProperti(ManagerProperti* manager) { this->managerProperti = manager; }
+
+    PlayerActionService* getActionService() const { return actionService; }
+    void setActionService(PlayerActionService* service) { this->actionService = service; }
+
+    // Getter dan Setter untuk Turn Management
+    vector<Pemain*>& getUrutanPemain() { return urutanPemain; }
+    void setUrutanPemain(vector<Pemain*>& urutan) { this->urutanPemain = urutan; }
+
+    int getCurrentTurnIndex() const { return currentTurnIndex; }
+    void setCurrentTurnIndex(int index) { this->currentTurnIndex = index; }
+
+    int getMaxTurn() const { return maxTurn; }
+    void setMaxTurn(int max) { this->maxTurn = max; }
+
+    bool isArahNormalTurn() const { return arahNormalTurn; }
+    void setArahNormalTurn(bool arah) { this->arahNormalTurn = arah; }
 
 };

@@ -17,6 +17,7 @@ class Properti;
 class PropertiStreet;
 class ConfigData;
 class ManagerProperti;
+class Papan;
 
 class Formatter {
 public :
@@ -24,7 +25,7 @@ public :
     static void cetakAktaProperti(Properti* properti, const ConfigData& config);
     
     // Menampilkan papan permainan dengan status pemain
-    static void cetakPapan(const std::vector<Petak*>& papan, const std::vector<Pemain*>& daftarPemain, 
+    static void cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
                           int currentTurn, int maxTurn);
     
     // Menampilkan properti milik pemain yang sedang bermain

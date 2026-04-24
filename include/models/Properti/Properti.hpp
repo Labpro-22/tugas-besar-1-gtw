@@ -24,7 +24,11 @@ public:
 
     Pemain* getPemilik() const;
 
+    const PropertiConfig* getConfigProperti (); 
+
     void setPemilik(Pemain* pemilik);
+
+    void setStatus (StatusProperti s);
 
     void gadai();
 

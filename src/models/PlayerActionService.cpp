@@ -1,6 +1,7 @@
 #include "models/PlayerActionService.hpp"
 #include "models/Properti/ManagerProperti.hpp"
 #include "models/Pemain.hpp"
+#include "models/Properti/Properti.hpp"
 #include "utils/LogTransaksiGame.hpp"
 #include "utils/NimonspoliException.hpp"
 #include <iostream>
@@ -23,7 +24,21 @@ void PlayerActionService::logFestivalActivation(Pemain& pemain, Properti& prop, 
 }
 
 void PlayerActionService::transferMoney(Pemain* asal, Pemain* tujuan, int jumlah) {
-    if (asal) *asal   -= jumlah;
+    if (asal) {
+        if (asal->getSaldo() < jumlah) {
+            if (Likuidasi::bisaBayarDenganLikuidasi(asal, jumlah)) {
+                Likuidasi::tampilkanPanelLikuidasi(asal, jumlah);
+                *asal -= jumlah;
+            }
+            else {
+                beriSemuaAset (asal, tujuan);
+                Kebangkrutan::declareBangkrut (asal);
+            }
+        }
+        else {
+            *asal -= jumlah;
+        }
+    } 
     if (tujuan) *tujuan += jumlah;
 }
 
@@ -245,3 +260,18 @@ void PlayerActionService::reverseTurnOrder(Pemain& pemain) {
     std::cout << "[ReverseCard] Urutan giliran kini " << (arahNormal ? "normal (searah jarum jam).\n" : "terbalik!\n");
     logAksi(pemain, "KARTU", arahNormal ? "ReverseCard (normal)" : "ReverseCard (terbalik)");
 }
+
+void PlayerActionService::beriSemuaAset (Pemain* asal, Pemain *tujuan) {
+    if (tujuan) {
+        *tujuan += asal->getSaldo();
+        for (auto aset : asal->getAsetPemain()) {
+            aset->setPemilik(tujuan);
+        }
+    }
+    else {
+        for (auto aset : asal->getAsetPemain()) {
+            aset->setPemilik(nullptr);
+            aset->setStatus(Properti::StatusProperti::BANK);
+        }
+    }
+} // nullptr = bank

@@ -14,7 +14,7 @@
 class ManagerPenjara {
 protected :
 public :
-    void tryEscapeByDouble (Pemain &p, Dadu &d);
+    void tryEscapeByDouble (Pemain &p, Dadu &d, PlayerActionService actionService);
 
     void escapeByFine (Pemain &p, PlayerActionService actionService);
 

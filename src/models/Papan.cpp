@@ -124,7 +124,7 @@ Petak* Papan::findNearestByKode(const std::string& kode, int indeks){
     return nullptr;
 }
 
-int Papan::getTotalPetak(){
+int Papan::getTotalPetak() const {
     return daftarPetak.size();
 }
 

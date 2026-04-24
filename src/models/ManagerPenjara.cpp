@@ -1,10 +1,15 @@
 #include "../../include/models/ManagerPenjara.hpp"
 
 // ======================== ManagerPenjara ========================
-void ManagerPenjara::tryEscapeByDouble(Pemain &p, Dadu& d) {
-    d.rollRandom();
-    if (d.isDouble()) {
-        p.setStatus(StatusPemain::ACTIVE);
+void ManagerPenjara::tryEscapeByDouble(Pemain &p, Dadu& d, PlayerActionService actionService) {
+    if (p.getPercobaanKeluarPenjara() >= 3) {
+        paksaBayar(p, actionService);
+    }
+    else {
+        d.rollRandom();
+        if (d.isDouble()) {
+            p.setStatus(StatusPemain::ACTIVE);
+        }
     }
 }
 

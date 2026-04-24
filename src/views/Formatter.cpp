@@ -8,6 +8,7 @@
 #include "../../include/models/Properti/PropertiUtility.hpp"
 #include "../../include/models/Properti/ManagerProperti.hpp"
 #include "../../include/models/ConfigData.hpp"
+#include "../../include/models/Papan.hpp"
 
 std::string Formatter::getColorCode(const std::string& warna) {
     if (warna == "COKLAT") return "\033[38;5;94m";          // Brown
@@ -115,9 +116,9 @@ void Formatter::cetakAktaProperti(Properti* properti, const ConfigData& config) 
     std::cout << "+================================+\n\n";
 }
 
-void Formatter::cetakPapan(const std::vector<Petak*>& papan, const std::vector<Pemain*>& daftarPemain, 
+void Formatter::cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
                           int currentTurn, int maxTurn) {
-    if (papan.empty()) {
+    if (papan.getTotalPetak() == 0) {
         std::cout << "Papan belum diinisialisasi.\n";
         return;
     }
@@ -134,9 +135,12 @@ void Formatter::cetakPapan(const std::vector<Petak*>& papan, const std::vector<P
     // Tampilkan daftar pemain dan posisinya
     for (size_t i = 0; i < daftarPemain.size(); i++) {
         const Pemain* p = daftarPemain[i];
-        std::cout << "P" << (i+1) << ": " << p->getUsername() 
-                  << " - Saldo: M" << p->getSaldo() 
-                  << " - Posisi: " << papan[p->getPosisi()]->getKode() << "\n";
+        Petak* petak = const_cast<Papan&>(papan).getPetak(p->getPosisi());
+        if (petak) {
+            std::cout << "P" << (i+1) << ": " << p->getUsername() 
+                      << " - Saldo: M" << p->getSaldo() 
+                      << " - Posisi: " << petak->getKode() << "\n";
+        }
     }
     
     std::cout << "\n";

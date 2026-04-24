@@ -25,6 +25,14 @@ void Properti::setPemilik(Pemain* pemain){
     status = StatusProperti::OWNED;
 }
 
+const PropertiConfig* Properti::getConfigProperti () {
+    return config;
+}
+
+void Properti::setStatus (StatusProperti s) {
+    status = s;
+}
+
 void Properti::gadai(){
     status = StatusProperti::MORTGAGED;
 }

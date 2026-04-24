@@ -20,7 +20,7 @@ public:
 
     Petak* findNearestByKode(const std::string& kode, int indeks);
 
-    int getTotalPetak();
+    int getTotalPetak() const;
 
     ~Papan();
 };
