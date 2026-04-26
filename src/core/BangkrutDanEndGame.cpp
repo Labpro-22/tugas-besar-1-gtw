@@ -257,7 +257,8 @@ bool SelesaiGame::sisaSatuOrang (vector<Pemain*> listPemain) {
     int count = 0;
 
     for (auto player : listPemain) {
-        if (player->getStatus() == StatusPemain::ACTIVE) {
+        // Pemain yang masih JAILED belum bangkrut dan tetap dihitung sebagai pemain aktif game.
+        if (player->getStatus() != StatusPemain::BANKRUPT) {
             count++;
         }
     }

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-class ITurnCommand;
+#include "core/commands/ITurnCommand.hpp"
 class GameEngine;
 class Pemain;
 class ConfigData;

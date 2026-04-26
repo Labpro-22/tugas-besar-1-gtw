@@ -76,7 +76,14 @@ void GameEngine::startGame() {
 
             int pemainAktifPadaRonde = 0;
             for (size_t langkah = 0; langkah < urutanPemain.size(); ++langkah) {
-                int idx = (currentTurnIndex + static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+                bool arahMaju = actionService ? actionService->isArahNormal() : true;
+                int idx = 0;
+                if (arahMaju) {
+                    idx = (currentTurnIndex + static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+                } else {
+                    idx = (currentTurnIndex - static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+                    if (idx < 0) idx += static_cast<int>(urutanPemain.size());
+                }
                 Pemain* player = urutanPemain[idx];
                 if (player->getStatus() == StatusPemain::BANKRUPT) {
                     continue;
@@ -94,6 +101,13 @@ void GameEngine::startGame() {
             if (pemainAktifPadaRonde == 0) {
                 break;
             }
+            bool arahMaju = actionService ? actionService->isArahNormal() : true;
+            if (arahMaju) {
+                currentTurnIndex = (currentTurnIndex + 1) % static_cast<int>(urutanPemain.size());
+            } else {
+                currentTurnIndex = (currentTurnIndex - 1) % static_cast<int>(urutanPemain.size());
+                if (currentTurnIndex < 0) currentTurnIndex += static_cast<int>(urutanPemain.size());
+            }
             currentGlobalTurn++;
         }
 
@@ -105,7 +119,14 @@ void GameEngine::startGame() {
     // Mode normal max turn.
     while (currentGlobalTurn <= maxTurn) {
         for (size_t langkah = 0; langkah < urutanPemain.size(); ++langkah) {
-            int idx = (currentTurnIndex + static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+            bool arahMaju = actionService ? actionService->isArahNormal() : true;
+            int idx = 0;
+            if (arahMaju) {
+                idx = (currentTurnIndex + static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+            } else {
+                idx = (currentTurnIndex - static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+                if (idx < 0) idx += static_cast<int>(urutanPemain.size());
+            }
             Pemain* player = urutanPemain[idx];
             if (player->getStatus() == StatusPemain::BANKRUPT) {
                 continue;
@@ -119,7 +140,13 @@ void GameEngine::startGame() {
             }
         }
 
-        currentTurnIndex = (currentTurnIndex + 1) % static_cast<int>(urutanPemain.size());
+        bool arahMaju = actionService ? actionService->isArahNormal() : true;
+        if (arahMaju) {
+            currentTurnIndex = (currentTurnIndex + 1) % static_cast<int>(urutanPemain.size());
+        } else {
+            currentTurnIndex = (currentTurnIndex - 1) % static_cast<int>(urutanPemain.size());
+            if (currentTurnIndex < 0) currentTurnIndex += static_cast<int>(urutanPemain.size());
+        }
         currentGlobalTurn++;
     }
 
