@@ -5,8 +5,8 @@
 #include <string>
 #include "../models/ConfigData.hpp"
 #include "../models/Pemain.hpp"
-#include "../models/Properti/Properti.hpp"
-#include "../models/Properti/PropertiStreet.hpp"
+#include "../models/Petak/PetakProperti.hpp"
+#include "../models/Petak/PetakLahan.hpp"
 #include "../views/Formatter.hpp"
 using namespace std;
 

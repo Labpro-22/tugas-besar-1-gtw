@@ -2,10 +2,10 @@
 #include "../../include/models/Pemain.hpp"
 #include "../../include/models/Petak/Petak.hpp"
 #include "../../include/models/Petak/PetakProperti.hpp"
-#include "../../include/models/Properti/Properti.hpp"
-#include "../../include/models/Properti/PropertiStreet.hpp"
-#include "../../include/models/Properti/PropertiRailroad.hpp"
-#include "../../include/models/Properti/PropertiUtility.hpp"
+#include "../../include/models/Petak/PetakProperti.hpp"
+#include "../../include/models/Petak/PetakLahan.hpp"
+#include "../../include/models/Petak/PetakStasiun.hpp"
+#include "../../include/models/Petak/PetakUtilitas.hpp"
 #include "models/Managers/ManagerProperti.hpp"
 #include "../../include/models/ConfigData.hpp"
 #include "../../include/models/Papan.hpp"
@@ -39,7 +39,7 @@ std::string Formatter::getBangunanSimbol(int level) {
     }
 }
 
-const PropertiConfig* Formatter::findPropertiConfig(Properti* properti, const ConfigData& config) {
+const PropertiConfig* Formatter::findPropertiConfig(PetakProperti* properti, const ConfigData& config) {
     if (!properti) return nullptr;
     
     for (const auto& pair : config.getPropertiMap()) {
@@ -50,9 +50,9 @@ const PropertiConfig* Formatter::findPropertiConfig(Properti* properti, const Co
     return nullptr;
 }
 
-void Formatter::cetakAktaProperti(Properti* properti, const ConfigData& config) {
+void Formatter::cetakAktaProperti(PetakProperti* properti, const ConfigData& config) {
     if (!properti) {
-        std::cout << "Properti tidak valid.\n";
+        std::cout << "PetakProperti tidak valid.\n";
         return;
     }
     
@@ -106,9 +106,9 @@ void Formatter::cetakAktaProperti(Properti* properti, const ConfigData& config) 
     
     // Tampilkan status
     std::string statusStr = "BANK";
-    if (properti->getStatus() == Properti::StatusProperti::OWNED) {
+    if (properti->getStatus() == PetakProperti::StatusProperti::OWNED) {
         statusStr = "OWNED (" + properti->getPemilik()->getUsername() + ")";
-    } else if (properti->getStatus() == Properti::StatusProperti::MORTGAGED) {
+    } else if (properti->getStatus() == PetakProperti::StatusProperti::MORTGAGED) {
         statusStr = "MORTGAGED";
     }
     
@@ -159,13 +159,13 @@ void Formatter::cetakPropertiPemain(const Pemain* pemain, const ConfigData& conf
         return;
     }
     
-    std::cout << "\n=== Properti Milik: " << pemain->getUsername() << " ===\n";
+    std::cout << "\n=== PetakProperti Milik: " << pemain->getUsername() << " ===\n";
     
     // Kelompokkan properti berdasarkan warna/jenis
-    std::map<std::string, std::vector<Properti*>> grupProperti;
+    std::map<std::string, std::vector<PetakProperti*>> grupProperti;
     int totalKekayaan = 0;
     
-    for (Properti* prop : aset) {
+    for (PetakProperti* prop : aset) {
         if (prop) {
             try {
                 // Cari warna properti dari config
@@ -189,15 +189,15 @@ void Formatter::cetakPropertiPemain(const Pemain* pemain, const ConfigData& conf
         
         std::cout << "[" << colorCode << grup.first << reset << "]\n";
         
-        for (Properti* prop : grup.second) {
-            std::string statusStr = (prop->getStatus() == Properti::StatusProperti::MORTGAGED) 
+        for (PetakProperti* prop : grup.second) {
+            std::string statusStr = (prop->getStatus() == PetakProperti::StatusProperti::MORTGAGED) 
                                     ? " MORTGAGED [M]" : " OWNED";
             
             // Tampilkan info properti
-            std::cout << "- " << prop->getNamaProperti() << " (" << prop->getKode() << ")";
+            std::cout << "- " << prop->getNama() << " (" << prop->getKode() << ")";
             
             // Jika ada bangunan, tampilkan
-            PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+            PetakLahan* street = dynamic_cast<PetakLahan*>(prop);
             if (street) {
                 if (street->punyaHotel()) {
                     std::cout << " Hotel";
@@ -219,15 +219,15 @@ void Formatter::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigDat
         return;
     }
     
-    std::vector<Properti*> bisaDigadai;
-    std::vector<Properti*> adaBangunan;
+    std::vector<PetakProperti*> bisaDigadai;
+    std::vector<PetakProperti*> adaBangunan;
     const auto& aset = pemain->getAsetPemain();
     
     // Filter properti yang bisa digadai (status OWNED)
-    for (Properti* prop : aset) {
-        if (prop && prop->getStatus() == Properti::StatusProperti::OWNED) {
+    for (PetakProperti* prop : aset) {
+        if (prop && prop->getStatus() == PetakProperti::StatusProperti::OWNED) {
             // Cek jika tidak ada bangunan (untuk street)
-            PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+            PetakLahan* street = dynamic_cast<PetakLahan*>(prop);
             if (!street || street->getJumlahBangunan() == 0) {
                 bisaDigadai.push_back(prop);
             } else {
@@ -242,15 +242,15 @@ void Formatter::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigDat
         return;
     }
     
-    std::cout << "\n=== Properti yang Dapat Digadaikan ===\n";
+    std::cout << "\n=== PetakProperti yang Dapat Digadaikan ===\n";
     
     int index = 1;
     
     // Tampilkan properti tanpa bangunan
-    for (Properti* prop : bisaDigadai) {
+    for (PetakProperti* prop : bisaDigadai) {
         const PropertiConfig* propConfig = findPropertiConfig(prop, config);
         if (propConfig) {
-            std::cout << index << ". " << prop->getNamaProperti() << " (" << prop->getKode() << ")"
+            std::cout << index << ". " << prop->getNama() << " (" << prop->getKode() << ")"
                       << " [" << propConfig->getWarna() << "] Nilai Gadai: M" << propConfig->getNilaiGadai() << "\n";
             index++;
         }
@@ -258,12 +258,12 @@ void Formatter::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigDat
     
     // Tampilkan properti dengan bangunan dengan catatan
     if (!adaBangunan.empty()) {
-        std::cout << "\n(Properti dengan bangunan - harus jual bangunan dulu):\n";
-        for (Properti* prop : adaBangunan) {
+        std::cout << "\n(PetakProperti dengan bangunan - harus jual bangunan dulu):\n";
+        for (PetakProperti* prop : adaBangunan) {
             const PropertiConfig* propConfig = findPropertiConfig(prop, config);
             if (propConfig) {
-                PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
-                std::cout << index << ". " << prop->getNamaProperti() << " (" << prop->getKode() << ")"
+                PetakLahan* street = dynamic_cast<PetakLahan*>(prop);
+                std::cout << index << ". " << prop->getNama() << " (" << prop->getKode() << ")"
                           << " [" << propConfig->getWarna() << "] - " << street->getJumlahBangunan() 
                           << " rumah\n";
                 index++;
@@ -280,12 +280,12 @@ void Formatter::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigDat
         return;
     }
     
-    std::vector<Properti*> sedangDigadai;
+    std::vector<PetakProperti*> sedangDigadai;
     const auto& aset = pemain->getAsetPemain();
     
     // Filter properti yang sedang digadai (status MORTGAGED)
-    for (Properti* prop : aset) {
-        if (prop && prop->getStatus() == Properti::StatusProperti::MORTGAGED) {
+    for (PetakProperti* prop : aset) {
+        if (prop && prop->getStatus() == PetakProperti::StatusProperti::MORTGAGED) {
             sedangDigadai.push_back(prop);
         }
     }
@@ -295,9 +295,9 @@ void Formatter::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigDat
         return;
     }
     
-    std::cout << "\n=== Properti yang Sedang Digadaikan ===\n";
+    std::cout << "\n=== PetakProperti yang Sedang Digadaikan ===\n";
     for (size_t i = 0; i < sedangDigadai.size(); i++) {
-        Properti* prop = sedangDigadai[i];
+        PetakProperti* prop = sedangDigadai[i];
         
         // Cari info dari config
         std::string warna;
@@ -310,7 +310,7 @@ void Formatter::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigDat
             }
         }
         
-        std::cout << (i+1) << ". " << prop->getNamaProperti() << " (" << prop->getKode() << ")"
+        std::cout << (i+1) << ". " << prop->getNama() << " (" << prop->getKode() << ")"
                   << " [" << warna << "] [M] Harga Tebus: M" << hargaBeli << "\n";
     }
     std::cout << "Uang kamu saat ini: M" << pemain->getSaldo() << "\n\n";
@@ -324,15 +324,15 @@ void Formatter::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerPropert
     }
     
     // Kelompokkan properti street berdasarkan color group
-    std::map<std::string, std::vector<PropertiStreet*>> grupBisaDibangun;
+    std::map<std::string, std::vector<PetakLahan*>> grupBisaDibangun;
     
     const auto& aset = pemain->getAsetPemain();
-    for (Properti* prop : aset) {
-        if (prop && prop->getStatus() == Properti::StatusProperti::OWNED) {
-            PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+    for (PetakProperti* prop : aset) {
+        if (prop && prop->getStatus() == PetakProperti::StatusProperti::OWNED) {
+            PetakLahan* street = dynamic_cast<PetakLahan*>(prop);
             if (street) {
                 // Cek apakah punya monopoli
-                if (manager.isMonopoly(pemain, street->getWarna())) {
+                if (manager.isMonopoly(pemain, street->getWarnaString())) {
                     // Ambil warna dari config
                     for (const auto& pair : config.getPropertiMap()) {
                         if (pair.second.getKode() == street->getKode()) {
@@ -360,7 +360,7 @@ void Formatter::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerPropert
         
         std::cout << groupNum << ". [" << colorCode << grup.first << reset << "]\n";
         
-        for (PropertiStreet* street : grup.second) {
+        for (PetakLahan* street : grup.second) {
             // Cari info dari config
             int hargaBangun = 0;
             for (const auto& pair : config.getPropertiMap()) {
@@ -381,7 +381,7 @@ void Formatter::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerPropert
                 buildingStr = "0 rumah";
             }
             
-            std::cout << "- " << street->getNamaProperti() << " (" << street->getKode() << ") : " 
+            std::cout << "- " << street->getNama() << " (" << street->getKode() << ") : " 
                       << buildingStr << " (Harga rumah: M" << hargaBangun << ")\n";
         }
         

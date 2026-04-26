@@ -28,7 +28,7 @@ int Likuidasi::totalLikuidasiSeluruhAsetGadai (Pemain *p) {
     for (auto aset : p->getAsetPemain()) {
         res += aset->getNilaiGadai();
 
-        auto street = dynamic_cast<PropertiStreet*>(aset);
+        auto street = dynamic_cast<PetakLahan*>(aset);
         if(street){
             int level = street->getJumlahBangunan();
             res += level * (street->getHargaBangun() / 2);
@@ -44,7 +44,7 @@ int Likuidasi::totalLikuidasiSeluruhAsetJual (Pemain *p) {
     for (auto aset : p->getAsetPemain()) {
         res += aset->getConfigProperti()->getHargaLahan();
 
-        auto street = dynamic_cast<PropertiStreet*>(aset);
+        auto street = dynamic_cast<PetakLahan*>(aset);
         if(street){
             int level = street->getJumlahBangunan();
             res += level * (street->getHargaBangun() / 2);

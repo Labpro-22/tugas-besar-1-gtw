@@ -6,7 +6,7 @@
 
 // Forward declaration
 class KartuKemampuanSpesial; 
-class Properti;
+class PetakProperti;
 class PlayerActionService; 
 
 enum class StatusPemain { ACTIVE, JAILED, BANKRUPT };
@@ -18,7 +18,7 @@ private:
     int saldo;
     StatusPemain status; 
     std::vector<KartuKemampuanSpesial*> kartuDiTangan;
-    std::vector<Properti*> asetPemain;
+    std::vector<PetakProperti*> asetPemain;
    
     bool shieldAktif;
     bool discountAktif;
@@ -53,8 +53,8 @@ public:
     void resetSkillUsage()               { sudahPakaiSkill = false; }  // dipanggil awal giliran
 
     //properti management. HitungAsetRailroad dan hitungAsetUtility handled by ManagerProperti
-    void tambahAset(Properti* p);
-    void hapusAset(Properti* p);
+    void tambahAset(PetakProperti* p);
+    void hapusAset(PetakProperti* p);
 
     //getter
     const std::string& getUsername()    const { return username; }
@@ -67,7 +67,7 @@ public:
     int  getPersenDiskon()              const { return persenDiskon; }
     int  getPercobaanKeluarPenjara()    const { return percobaanKeluarPenjara; }
     const std::vector<KartuKemampuanSpesial*>& getKartuDiTangan() const { return kartuDiTangan; }
-    const std::vector<Properti*>&              getAsetPemain()    const { return asetPemain ; }
+    const std::vector<PetakProperti*>&              getAsetPemain()    const { return asetPemain ; }
 
     void setKartuDiTangan(const std::vector<KartuKemampuanSpesial*>& kartu) {
         kartuDiTangan = kartu;

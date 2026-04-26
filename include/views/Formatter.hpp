@@ -13,8 +13,8 @@
 // Forward declarations
 class Pemain;
 class Petak;
-class Properti;
-class PropertiStreet;
+class PetakProperti;
+class PetakLahan;
 class ConfigData;
 class ManagerProperti;
 class Papan;
@@ -22,7 +22,7 @@ class Papan;
 class Formatter {
 public :
     // Menampilkan akta kepemilikan dari suatu properti
-    static void cetakAktaProperti(Properti* properti, const ConfigData& config);
+    static void cetakAktaProperti(PetakProperti* properti, const ConfigData& config);
     
     // Menampilkan papan permainan dengan status pemain
     static void cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
@@ -49,6 +49,6 @@ private:
     // Helper function untuk mendapatkan simbol bangunan
     static std::string getBangunanSimbol(int level);
     
-    // Helper untuk mencari PropertiConfig dari Properti
-    static const PropertiConfig* findPropertiConfig(Properti* properti, const ConfigData& config);
+    // Helper untuk mencari PropertiConfig dari PetakProperti
+    static const PropertiConfig* findPropertiConfig(PetakProperti* properti, const ConfigData& config);
 };

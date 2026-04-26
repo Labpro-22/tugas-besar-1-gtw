@@ -1,33 +1,35 @@
 #pragma once
-#include "../Properti/Properti.hpp"
-#include "../Properti/PropertiStreet.hpp"
-#include "../Properti/PropertiRailroad.hpp"
-#include "../Properti/PropertiUtility.hpp"
+#include "../Petak/PetakProperti.hpp"
+#include "../Petak/PetakLahan.hpp"
+#include "../Petak/PetakStasiun.hpp"
+#include "../Petak/PetakUtilitas.hpp"
 #include "../ConfigData.hpp"
 #include <vector>
 #include <string>
 
 class ManagerProperti{
 protected:
-    std::map<int, Properti*> daftarProperti;
+    std::map<int, PetakProperti*> daftarProperti;
     const ConfigData& configData;
     
 public:
     ManagerProperti(const ConfigData& configData);
 
-    bool isMonopoly(Pemain* pemain, PropertiStreet::ColorGroup warna);
+    void registerProperti(PetakProperti* p);
 
-    bool isBisaBangun(PropertiStreet* target); // level < 5 dan selisih jumlah rumah antar petak tidak lebih dari 1
+    bool isMonopoly(Pemain* pemain, std::string warna);
 
-    void jualSemuaBangunan(Pemain* pemain, PropertiStreet::ColorGroup warna);
+    bool isBisaBangun(PetakLahan* target); // level < 5 dan selisih jumlah rumah antar petak tidak lebih dari 1
+
+    void jualSemuaBangunan(Pemain* pemain, std::string warna);
 
     int hitungLikuidasi(Pemain* pemain);
 
-    bool isPunyaSemuaDalamGrup(Pemain* pemain, PropertiStreet::ColorGroup warna);
+    bool isPunyaSemuaDalamGrup(Pemain* pemain, std::string warna);
 
-    std::vector<PropertiStreet*> getPropertiByGrup(PropertiStreet::ColorGroup warna);
+    std::vector<PetakLahan*> getPropertiByGrup(std::string warna);
 
-    Properti* getProperti(int id);
+    PetakProperti* getProperti(int id);
 
     int hitungUtility(Pemain* pemain);
 
@@ -39,6 +41,6 @@ public:
 
     ~ManagerProperti();
 
-    const std::map<int, Properti*>& getDaftarProperti() { return daftarProperti; }
+    const std::map<int, PetakProperti*>& getDaftarProperti() { return daftarProperti; }
     int hitungJumlahProperti() { return daftarProperti.size(); }
 };

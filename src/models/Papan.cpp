@@ -4,6 +4,9 @@
 #include "models/Petak/PetakFestival.hpp"
 #include "models/Petak/PetakSpesial.hpp"
 #include "models/Petak/PetakProperti.hpp"
+#include "models/Petak/PetakLahan.hpp"
+#include "models/Petak/PetakStasiun.hpp"
+#include "models/Petak/PetakUtilitas.hpp"
 
 Papan::Papan(ManagerProperti& manager, ConfigData& configData){
     int n = configData.getPropertiMap().size() + configData.getAksiMap().size();
@@ -13,15 +16,21 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
         const auto& propertiMap = configData.getPropertiMap();
         auto properti = propertiMap.find(i);
         if(properti != propertiMap.end()){ //id merupakan properti
-            Properti* p = manager.getProperti(properti->second.getId());
-            daftarPetak.push_back(
-                new PetakProperti(
-                    properti->second.getId(),
-                    properti->second.getKode(),
-                    properti->second.getNama(),
-                    p
-                )
-            );
+            const PropertiConfig& cfg = properti->second;
+            PetakProperti* p = nullptr;
+            
+            if (cfg.getJenis() == "STREET") {
+                p = new PetakLahan(cfg.getId(), cfg.getKode(), cfg.getNama(), cfg);
+            } else if (cfg.getJenis() == "RAILROAD") {
+                p = new PetakStasiun(cfg.getId(), cfg.getKode(), cfg.getNama(), cfg);
+            } else if (cfg.getJenis() == "UTILITY") {
+                p = new PetakUtilitas(cfg.getId(), cfg.getKode(), cfg.getNama(), cfg);
+            }
+
+            if (p) {
+                daftarPetak.push_back(p);
+                manager.registerProperti(p);
+            }
         }
 
         // Aksi

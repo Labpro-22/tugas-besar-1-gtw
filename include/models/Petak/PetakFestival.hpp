@@ -4,7 +4,7 @@
 #include <utility>
 #include <string>
 
-class Properti;
+class PetakProperti;
 class Pemain;
 class PlayerActionService;
 

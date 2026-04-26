@@ -1,6 +1,6 @@
 #include "models/Petak/PetakFestival.hpp"
 #include "models/Managers/ManagerFestival.hpp"
-#include "models/Properti/Properti.hpp"
+#include "models/Petak/PetakProperti.hpp"
 #include "models/Pemain.hpp"
 #include "models/PlayerActionService.hpp"
 #include <iostream>
@@ -19,8 +19,8 @@ void PetakFestival::onLanded(Pemain& pemain, PlayerActionService& svc) {
     }
     std::cout << "Daftar properti milikmu:\n";
     for (size_t i = 0; i < aset.size(); ++i) {
-        Properti* p = aset[i];
-        std::cout << (i + 1) << ". " << p->getNamaProperti() << " (" << p->getKode() << ")";
+        PetakProperti* p = aset[i];
+        std::cout << (i + 1) << ". " << p->getNama() << " (" << p->getKode() << ")";
         if (managerFestival->isAktif(p)) {
             std::cout << " [festival x" << managerFestival->getPengali(p) << ", sisa " << managerFestival->getSisaDurasi(p) << " giliran]";
         }
@@ -37,7 +37,7 @@ void PetakFestival::onLanded(Pemain& pemain, PlayerActionService& svc) {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    Properti* target = aset[pilihan - 1];
+    PetakProperti* target = aset[pilihan - 1];
     managerFestival->applyFestival(target);
     std::string detail = target->getKode() + " festival x" + std::to_string(managerFestival->getPengali(target)) + " durasi " + std::to_string(managerFestival->getSisaDurasi(target));
     svc.logAksi(pemain, "FESTIVAL", detail);

@@ -3,19 +3,19 @@
 #include <utility>
 #include <string>
 
-class Properti;
+class PetakProperti;
 class Pemain;
 
 class ManagerFestival {
 private:
-    std::map<Properti*, std::pair<int, int>> efekAktif;
+    std::map<PetakProperti*, std::pair<int, int>> efekAktif;
     static constexpr int PENGALI_MAKS = 8;
     static constexpr int DURASI_DEFAULT = 3;
 public:
-    void applyFestival(Properti* properti);
+    void applyFestival(PetakProperti* properti);
     void updateDurasi(Pemain* pemilik);
-    int getPengali(Properti* properti) const;
-    int getSisaDurasi(Properti* properti) const;
-    bool isAktif(Properti* properti) const;
-    std::string getFestivalString(Properti* properti) const;
+    int getPengali(PetakProperti* properti) const;
+    int getSisaDurasi(PetakProperti* properti) const;
+    bool isAktif(PetakProperti* properti) const;
+    std::string getFestivalString(PetakProperti* properti) const;
 };

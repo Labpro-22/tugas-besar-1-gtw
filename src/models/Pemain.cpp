@@ -96,10 +96,10 @@ void Pemain::gunakanKartu(int index, PlayerActionService& svc, DeckKartu<KartuKe
 }
 
 // properti management 
-void Pemain::tambahAset(Properti* p){
+void Pemain::tambahAset(PetakProperti* p){
     asetPemain.push_back(p);
 }
-void Pemain::hapusAset(Properti* p){
+void Pemain::hapusAset(PetakProperti* p){
     for (auto it = asetPemain.begin(); it != asetPemain.end(); it++){
         if (*it == p){
             asetPemain.erase(it);

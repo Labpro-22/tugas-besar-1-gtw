@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "../PlayerActionService.hpp"
-#include "../Pemain.hpp"
+class PlayerActionService;
+class Pemain;
 
 
 class Petak{

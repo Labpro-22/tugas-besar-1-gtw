@@ -101,7 +101,7 @@ void GameEngine::startTurn(Pemain* p, int currentTurn) {
         else if (1) { // cetak akta
             // minta input kode properti dari user
             int kode = 0; // ini masih stub
-            Properti *inginDicetak = managerProperti->getProperti(0);
+            PetakProperti *inginDicetak = managerProperti->getProperti(0);
             if (configData) {
                 Formatter::cetakAktaProperti(inginDicetak, *configData);
             }

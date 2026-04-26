@@ -1,7 +1,7 @@
 #include "models/PlayerActionService.hpp"
 #include "models/Managers/ManagerProperti.hpp"
 #include "models/Pemain.hpp"
-#include "models/Properti/Properti.hpp"
+#include "models/Petak/PetakProperti.hpp"
 #include "utils/LogTransaksiGame.hpp"
 #include "utils/NimonspoliException.hpp"
 #include <iostream>
@@ -18,7 +18,7 @@ void PlayerActionService::logAksi(Pemain& pemain, const std::string& aksi, const
     }
 }
 
-void PlayerActionService::logFestivalActivation(Pemain& pemain, Properti& prop, int pengali, int durasi) {
+void PlayerActionService::logFestivalActivation(Pemain& pemain, PetakProperti& prop, int pengali, int durasi) {
     std::string detail = prop.getKode() + ": sewa x" + std::to_string(pengali) + ", durasi " + std::to_string(durasi) + " giliran";
     logAksi(pemain, "FESTIVAL", detail);
 }
@@ -128,16 +128,16 @@ void PlayerActionService::jailOpponent(Pemain& pemain) {
     logAksi(pemain, "KARTU", "PenjaraKanCard " + aktif[pilihan-1]->getUsername());
 }
 
-void PlayerActionService::bayarSewa(Pemain& penyewa, Properti& properti, int nilaiDadu) {
+void PlayerActionService::bayarSewa(Pemain& penyewa, PetakProperti& properti, int nilaiDadu) {
     (void)nilaiDadu;
 }
-void PlayerActionService::beliProperti(Pemain& pemain, Properti& properti) {
+void PlayerActionService::beliProperti(Pemain& pemain, PetakProperti& properti) {
     (void)pemain; (void)properti;
 }
-void PlayerActionService::gadaiProperti(Pemain& pemain, Properti& properti) {
+void PlayerActionService::gadaiProperti(Pemain& pemain, PetakProperti& properti) {
     (void)pemain; (void)properti;
 }
-void PlayerActionService::bangunProperti(Pemain& pemain, PropertiStreet& properti) {
+void PlayerActionService::bangunProperti(Pemain& pemain, PetakLahan& properti) {
     (void)pemain; (void)properti;
 }
 
@@ -163,9 +163,9 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
     }
     Pemain* target = aktif[pilihanPemain - 1];
 
-    std::vector<PropertiStreet*> punyaBangunan;
-    for (Properti* p : target->getAsetPemain()) {
-        auto* street = dynamic_cast<PropertiStreet*>(p);
+    std::vector<PetakLahan*> punyaBangunan;
+    for (PetakProperti* p : target->getAsetPemain()) {
+        auto* street = dynamic_cast<PetakLahan*>(p);
         if (street && street->getJumlahBangunan() > 0) punyaBangunan.push_back(street);
     }
     if (punyaBangunan.empty()) {
@@ -175,8 +175,8 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
 
     std::cout << "Pilih properti yang bangunannya ingin dihancurkan:\n";
     for (size_t i = 0; i < punyaBangunan.size(); ++i) {
-        PropertiStreet* s = punyaBangunan[i];
-        std::cout << "  " << (i+1) << ". " << s->getNamaProperti() << " (" << s->getKode() << ")" << " — " << (s->punyaHotel() ? "Hotel" : std::to_string(s->getJumlahBangunan()) + " rumah") << "\n";
+        PetakLahan* s = punyaBangunan[i];
+        std::cout << "  " << (i+1) << ". " << s->getNama() << " (" << s->getKode() << ")" << " — " << (s->punyaHotel() ? "Hotel" : std::to_string(s->getJumlahBangunan()) + " rumah") << "\n";
     }
 
     int pilihanProperti = 0;
@@ -185,14 +185,14 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
         std::cin >> pilihanProperti;
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-    PropertiStreet* dipilih = punyaBangunan[pilihanProperti - 1];
+    PetakLahan* dipilih = punyaBangunan[pilihanProperti - 1];
 
     // hancurkan semua bangunan
     int jumlahSebelum = dipilih->getJumlahBangunan();
     while (dipilih->getJumlahBangunan() > 0) {
         dipilih->turunkanBangunan();
     }
-    std::cout << "[DemolitionCard] Semua bangunan (" << jumlahSebelum << (jumlahSebelum == 5 ? " — hotel" : " rumah") << ") di " << dipilih->getNamaProperti() << " milik " << target->getUsername() << " telah dihancurkan.\n";
+    std::cout << "[DemolitionCard] Semua bangunan (" << jumlahSebelum << (jumlahSebelum == 5 ? " — hotel" : " rumah") << ") di " << dipilih->getNama() << " milik " << target->getUsername() << " telah dihancurkan.\n";
     logAksi(pemain, "KARTU", "DemolitionCard " + dipilih->getKode() + " milik " + target->getUsername());
 }
 
@@ -271,7 +271,7 @@ void PlayerActionService::beriSemuaAset (Pemain* asal, Pemain *tujuan) {
     else {
         for (auto aset : asal->getAsetPemain()) {
             aset->setPemilik(nullptr);
-            aset->setStatus(Properti::StatusProperti::BANK);
+            aset->setStatus(PetakProperti::StatusProperti::BANK);
         }
     }
 } // nullptr = bank

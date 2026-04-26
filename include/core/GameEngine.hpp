@@ -22,8 +22,8 @@ using namespace std;
 
 // Forward declarations
 class Petak;
-class Properti;
-class PropertiStreet;
+class PetakProperti;
+class PetakLahan;
 class ManagerFestival;
 template <typename T> class DeckKartu;
 

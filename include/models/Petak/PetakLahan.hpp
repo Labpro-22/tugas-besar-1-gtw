@@ -1,9 +1,10 @@
 #pragma once
-#include "Properti.hpp"
+#include "PetakProperti.hpp"
+#include <vector>
 
-class PropertiStreet : public Properti{
+class PetakLahan : public PetakProperti {
 public:
-    enum class ColorGroup{
+    enum class ColorGroup {
         DEFAULT,
         COKLAT,
         BIRU_MUDA,
@@ -16,19 +17,22 @@ public:
         BIRU_TUA
     };
 
-    PropertiStreet(const PropertiConfig& config);
+    PetakLahan(int indeks, const std::string& kode, const std::string& nama, const PropertiConfig& config);
+    
     bool punyaHotel() const;
     int hitungSewa(int dadu, ManagerProperti& manager) override;
-    void bangun(ManagerProperti& manager); //maks 4 rumah + 1 hotel
+    void bangun(ManagerProperti& manager); // maks 4 rumah + 1 hotel
     int getJumlahBangunan() const;
     int getHargaBangun() const;
     std::string getJenisString() const override;
     std::string getBangunanString() const override;
     std::string getJumlahBangunanString() const;
     ColorGroup getWarna() const;
+    std::string getWarnaString() const;
     void turunkanBangunan();
-    ColorGroup convertWarna(const std::string& warnaStr);
-    ~PropertiStreet() = default;
+    static ColorGroup convertWarna(const std::string& warnaStr);
+    
+    ~PetakLahan() = default;
 
 private:
     ColorGroup warna;

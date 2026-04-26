@@ -6,8 +6,8 @@
 #include "../core/BangkrutDanEndGame.hpp"
 
 class Pemain;
-class PropertiStreet;
-class Properti;
+class PetakLahan;
+class PetakProperti;
 class MovementController;
 class ManagerPenjara;
 class ManagerProperti;
@@ -41,13 +41,13 @@ public:
     void payToAllPlayers(Pemain& pembayar, int jumlahPerOrang); // untuk KartuMauNyaleg
 
     /** Hitung dan eksekusi pembayaran sewa. */
-    void bayarSewa(Pemain& penyewa, Properti& properti, int nilaiDadu);
+    void bayarSewa(Pemain& penyewa, PetakProperti& properti, int nilaiDadu);
     /** Eksekusi pembelian properti oleh pemain. */
-    void beliProperti(Pemain& pemain, Properti& properti);
+    void beliProperti(Pemain& pemain, PetakProperti& properti);
     /** Eksekusi gadai properti ke bank. */
-    void gadaiProperti(Pemain& pemain, Properti& properti);
+    void gadaiProperti(Pemain& pemain, PetakProperti& properti);
     /** Eksekusi bangun rumah/hotel pada properti street. */
-    void bangunProperti(Pemain& pemain, PropertiStreet& properti);
+    void bangunProperti(Pemain& pemain, PetakLahan& properti);
 
     void demolishOpponentProperty(Pemain& pemain); // untuk DemolitionCard
     void pullPlayerAhead(Pemain& pemain); // untuk LassoCard
@@ -57,7 +57,7 @@ public:
     /* Buat Kebangkrutan */
     void beriSemuaAset (Pemain* asal, Pemain *tujuan); // nullptr = bank
 
-    void logFestivalActivation(Pemain& pemain, Properti& prop, int pengali, int durasi);
+    void logFestivalActivation(Pemain& pemain, PetakProperti& prop, int pengali, int durasi);
     void logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail);
     bool isArahNormal() const { return arahNormal; }
     const std::vector<Pemain*>& getDaftarPemain() const { return *daftarPemain; }
