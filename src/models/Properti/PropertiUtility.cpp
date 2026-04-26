@@ -1,5 +1,5 @@
 #include "models/Properti/PropertiUtility.hpp"
-#include "models/Properti/ManagerProperti.hpp"
+#include "models/Managers/ManagerProperti.hpp"
 
 PropertiUtility::PropertiUtility(const PropertiConfig& config):
     Properti(config){}

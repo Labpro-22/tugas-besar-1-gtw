@@ -1,4 +1,4 @@
-#include "../../include/models/ManagerPenjara.hpp"
+#include "models/Managers/ManagerPenjara.hpp"
 
 // ======================== ManagerPenjara ========================
 void ManagerPenjara::tryEscapeByDouble(Pemain &p, Dadu& d, PlayerActionService actionService) {

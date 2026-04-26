@@ -1,8 +1,8 @@
 #pragma once
-#include "Properti.hpp"
-#include "PropertiStreet.hpp"
-#include "PropertiRailroad.hpp"
-#include "PropertiUtility.hpp"
+#include "../Properti/Properti.hpp"
+#include "../Properti/PropertiStreet.hpp"
+#include "../Properti/PropertiRailroad.hpp"
+#include "../Properti/PropertiUtility.hpp"
 #include "../ConfigData.hpp"
 #include <vector>
 #include <string>
@@ -39,6 +39,6 @@ public:
 
     ~ManagerProperti();
 
-    const std::map<std::string, Properti*>& getDaftarProperti() { return daftarProperti; }
+    const std::map<int, Properti*>& getDaftarProperti() { return daftarProperti; }
     int hitungJumlahProperti() { return daftarProperti.size(); }
 };

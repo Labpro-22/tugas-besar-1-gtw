@@ -8,7 +8,7 @@ PetakSpesial::PetakSpesial(int indeks, const std::string& kode, const std::strin
 PetakMulai::PetakMulai(int indeks, const std::string& kode, const std::string& nama):
     PetakSpesial(indeks, kode, nama){}
 
-void PetakMulai::onLanded(Pemain &p, PlayerActionService actionService) {
+void PetakMulai::onLanded(Pemain &p, PlayerActionService& actionService) {
     actionService.transferMoney(nullptr, &p, actionService.getConfig()->getGajiGo());
 }
 
@@ -16,7 +16,7 @@ void PetakMulai::onLanded(Pemain &p, PlayerActionService actionService) {
 PetakPenjara::PetakPenjara(int indeks, const std::string& kode, const std::string& nama):
     PetakSpesial(indeks, kode, nama), manager_penjara(nullptr){}
 
-void PetakPenjara::onLanded(Pemain &p, PlayerActionService actionService) {
+void PetakPenjara::onLanded(Pemain &p, PlayerActionService& actionService) {
     // ga ngapa2in lanjut aja biasa
 }
 
@@ -24,11 +24,11 @@ void PetakPenjara::onLanded(Pemain &p, PlayerActionService actionService) {
 PetakPergiPenjara::PetakPergiPenjara(int indeks, const std::string& kode, const std::string& nama):
     PetakSpesial(indeks, kode, nama){}
 
-void PetakPergiPenjara::onLanded(Pemain &p, PlayerActionService actionService) {
+void PetakPergiPenjara::onLanded(Pemain &p, PlayerActionService& actionService) {
     masukkanKePenjara(p, actionService);
 }
 
-void PetakPergiPenjara::masukkanKePenjara(Pemain &p, PlayerActionService actionService) {
+void PetakPergiPenjara::masukkanKePenjara(Pemain &p, PlayerActionService& actionService) {
     actionService.sendToJail(p);
 }
 
@@ -36,6 +36,6 @@ void PetakPergiPenjara::masukkanKePenjara(Pemain &p, PlayerActionService actionS
 PetakBebasParkir::PetakBebasParkir(int indeks, const std::string& kode, const std::string& nama):
     PetakSpesial(indeks, kode, nama){}
 
-void PetakBebasParkir::onLanded(Pemain &p, PlayerActionService actionService) {
+void PetakBebasParkir::onLanded(Pemain &p, PlayerActionService& actionService) {
     // ga ngapa2in juga
 }

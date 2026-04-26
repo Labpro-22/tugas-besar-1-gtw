@@ -1,5 +1,5 @@
 #include "models/Properti/PropertiRailroad.hpp"
-#include "models/Properti/ManagerProperti.hpp"
+#include "models/Managers/ManagerProperti.hpp"
 
 PropertiRailroad::PropertiRailroad(const PropertiConfig& config):
     Properti(config){}

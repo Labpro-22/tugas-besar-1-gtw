@@ -1,4 +1,4 @@
-#include "models/Properti/ManagerProperti.hpp"
+#include "models/Managers/ManagerProperti.hpp"
 
 ManagerProperti::ManagerProperti(const ConfigData& configData) : 
     configData(configData){

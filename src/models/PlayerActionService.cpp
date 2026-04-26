@@ -1,5 +1,5 @@
 #include "models/PlayerActionService.hpp"
-#include "models/Properti/ManagerProperti.hpp"
+#include "models/Managers/ManagerProperti.hpp"
 #include "models/Pemain.hpp"
 #include "models/Properti/Properti.hpp"
 #include "utils/LogTransaksiGame.hpp"

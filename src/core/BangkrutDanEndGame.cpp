@@ -1,3 +1,6 @@
+#include "core/BangkrutDanEndGame.hpp"
+#include "models/ConfigData.hpp"
+const ConfigData* Likuidasi::config = nullptr;
 #include "../../include/core/BangkrutDanEndGame.hpp"
 
 // Kebangkrutan

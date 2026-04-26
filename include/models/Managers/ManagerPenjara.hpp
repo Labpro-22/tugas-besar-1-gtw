@@ -4,8 +4,8 @@
 #include <map>
 #include <algorithm>
 #include <string>
-#include "Petak.hpp"
-#include "PetakAksi.hpp"
+#include "../Petak/Petak.hpp"
+#include "../Petak/PetakAksi.hpp"
 #include "../Pemain.hpp"
 #include "../ConfigData.hpp"
 #include "../Dadu.hpp"

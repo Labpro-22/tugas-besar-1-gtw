@@ -6,7 +6,7 @@
 #include "../../include/models/Properti/PropertiStreet.hpp"
 #include "../../include/models/Properti/PropertiRailroad.hpp"
 #include "../../include/models/Properti/PropertiUtility.hpp"
-#include "../../include/models/Properti/ManagerProperti.hpp"
+#include "models/Managers/ManagerProperti.hpp"
 #include "../../include/models/ConfigData.hpp"
 #include "../../include/models/Papan.hpp"
 

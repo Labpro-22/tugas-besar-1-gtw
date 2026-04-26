@@ -1,0 +1,3846 @@
+
+--- ./include/utils/ConfigLoader.hpp ---
+#pragma once
+#include "../models/ConfigData.hpp"
+#include <string>
+
+class ConfigLoader{
+public:
+    static ConfigData loadAll(const std::string& folderPath);
+private:
+    static std::map<int, PropertiConfig> loadProperty(const std::vector<std::string>& lines);
+    static std::map<int, AksiConfig> loadAksi(const std::vector<std::string>& lines);
+    static std::map<int, int> loadRailroad(const std::vector<std::string>& lines);
+    static std::map<int, int> loadUtility(const std::vector<std::string>& lines);
+
+    struct TaxData    { int pphFlat, pphPersen, pbmFlat; };
+    struct SpecialData{ int gajiGo, dendaPenjara; };
+    struct MiscData   { int maxTurn, uangAwal; };
+
+    static TaxData loadTax(const std::vector<std::string>& lines);
+    static SpecialData loadSpecial(const std::vector<std::string>& lines);
+    static MiscData loadMisc(const std::vector<std::string>& lines);
+};
+--- ./include/utils/NimonspoliException.hpp ---
+#pragma once
+#include <exception>
+#include <string>
+
+class NimonspoliException : public std::exception {
+protected:
+    int kodeError;
+    std::string tipeError;
+public:
+    /**
+     * @brief Constructor dari base NimonspoliException.
+     * @param kode Kode representasi numerik dari error.
+     * @param tipe Nama/tipe kategori dari error.
+     */
+    NimonspoliException(int kode, std::string tipe) : kodeError(kode), tipeError(tipe) {}
+
+    int getkodeError() const noexcept { return kodeError; }
+    std::string gettipeError() const noexcept { return tipeError; }
+    virtual const char* what() const noexcept override { return tipeError.c_str(); }
+};
+
+class UangTidakCukupException : public NimonspoliException{
+public:
+    UangTidakCukupException() : NimonspoliException(1, "UANG_TIDAK_CUKUP"){};
+};
+
+class SlotKartuPenuhException : public NimonspoliException{
+public:
+    SlotKartuPenuhException() : NimonspoliException(2, "SLOT_KARTU_PENUH"){};
+};
+
+// Untuk handle command yang tidak ada
+class PerintahTidakDitemukanException : public NimonspoliException{
+public:
+    PerintahTidakDitemukanException() : NimonspoliException(3, "PERINTAH_TIDAK_DITEMUKAN"){};
+};
+
+// Untuk handle path file yang tidak ada atau file config yang kosong
+class FileTidakValidException : public NimonspoliException{
+public:
+    FileTidakValidException() : NimonspoliException(4, "FILE_TIDAK_VALID"){};
+};
+
+
+--- ./include/utils/SaveNLoad.hpp ---
+#pragma once
+#include "../core/GameEngine.hpp"
+
+class SaveNLoad{
+private:
+
+public:
+    void saveGameState(GameEngine game, std::string filename);
+
+    std::vector<std::string> saveStatePemain(GameEngine& game);
+    std::vector<std::string> saveStateGiliran(GameEngine& game);
+    std::vector<std::string> saveStateProperti(GameEngine& game);
+    std::vector<std::string> saveStateDeck(GameEngine& game);
+    std::vector<std::string> saveStateLog(GameEngine& game);
+
+    GameEngine loadGameState(std::string filename);
+
+    std::vector<std::string> loadStatePemain(GameEngine& game);
+    std::vector<std::string> loadStateGiliran(GameEngine& game);
+    std::vector<std::string> saveStateProperti(GameEngine& game);
+    std::vector<std::string> saveStateDeck(GameEngine& game);
+    std::vector<std::string> saveStateLog(GameEngine& game);
+};
+--- ./include/utils/FileHelper.hpp ---
+#pragma once
+#include <vector>
+#include <string>
+
+class FileHelper{
+public:
+    static std::vector<std::string> readAllLines(const std::string& path);
+    static void writeAllLines(const std::string& path, const std::vector<std::string>& lines);
+};
+
+
+--- ./include/utils/LogTransaksiGame.hpp ---
+#pragma once
+#include <vector>
+#include <string>
+
+class LogTransaksiEntry{
+private:
+    int ronde;
+    std::string username;
+    std::string aksi; 
+    std::string detail; 
+public:
+    LogTransaksiEntry(int ronde, std::string username, std::string aksi, std::string detail);
+    int getRonde() const { return ronde; }
+    const std::string& getUsername() const { return username; }
+    const std::string& getAksi() const { return aksi; }
+    const std::string& getDetail() const { return detail; }
+
+};
+
+class LogTransaksiGame{
+private:
+    std::vector<LogTransaksiEntry> logs;
+public:
+    void tambahLog(LogTransaksiEntry log);
+    const std::vector<LogTransaksiEntry>& getLogs() const { return logs; }
+    std::vector<LogTransaksiEntry> getLogs(int top) const;
+    LogTransaksiGame& operator<<(LogTransaksiEntry log);
+};
+--- ./include/views/Formatter.hpp ---
+#pragma once
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <random>
+#include <cstdlib>
+#include <ctime>
+#include <iomanip>
+#include <map>
+#include "../models/ConfigData.hpp"
+
+// Forward declarations
+class Pemain;
+class Petak;
+class Properti;
+class PropertiStreet;
+class ConfigData;
+class ManagerProperti;
+class Papan;
+
+class Formatter {
+public :
+    // Menampilkan akta kepemilikan dari suatu properti
+    static void cetakAktaProperti(Properti* properti, const ConfigData& config);
+    
+    // Menampilkan papan permainan dengan status pemain
+    static void cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
+                          int currentTurn, int maxTurn);
+    
+    // Menampilkan properti milik pemain yang sedang bermain
+    static void cetakPropertiPemain(const Pemain* pemain, const ConfigData& config);
+    
+    // Menampilkan properti yang bisa digadai
+    static void tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigData& config);
+    
+    // Menampilkan properti yang sedang digadai (bisa ditebus)
+    static void tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigData& config);
+    
+    // Menampilkan properti yang bisa dibangun
+    static void tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerProperti& manager, 
+                                                  const ConfigData& config);
+    
+private:
+    // Helper function untuk mendapatkan warna ANSI untuk display
+    static std::string getColorCode(const std::string& warna);
+    static std::string resetColor();
+    
+    // Helper function untuk mendapatkan simbol bangunan
+    static std::string getBangunanSimbol(int level);
+    
+    // Helper untuk mencari PropertiConfig dari Properti
+    static const PropertiConfig* findPropertiConfig(Properti* properti, const ConfigData& config);
+};
+
+--- ./include/models/ManagerPenjara.hpp ---
+#pragma once
+#include <iostream>
+#include <vector>
+#include <map>
+#include <algorithm>
+#include <string>
+#include "Petak.hpp"
+#include "PetakAksi.hpp"
+#include "../Pemain.hpp"
+#include "../ConfigData.hpp"
+#include "../Dadu.hpp"
+#include "../PlayerActionService.hpp"
+
+class ManagerPenjara {
+protected :
+public :
+    void tryEscapeByDouble (Pemain &p, Dadu &d, PlayerActionService actionService);
+
+    void escapeByFine (Pemain &p, PlayerActionService actionService);
+
+    void paksaBayar (Pemain &p, PlayerActionService actionService); // udah turn4
+};
+--- ./include/models/Pemain.hpp ---
+#pragma once
+#include <string>
+#include <vector>
+#include "models/Kartu/DeckKartu.hpp"
+#include "models/Kartu/KartuKemampuanSpesial.hpp"
+
+// Forward declaration
+class KartuKemampuanSpesial; 
+class Properti;
+class PlayerActionService; 
+
+enum class StatusPemain { ACTIVE, JAILED, BANKRUPT };
+
+class Pemain {
+private:
+    std::string username;
+    int posisi;
+    int saldo;
+    StatusPemain status; 
+    std::vector<KartuKemampuanSpesial*> kartuDiTangan;
+    std::vector<Properti*> asetPemain;
+   
+    bool shieldAktif;
+    bool discountAktif;
+    int  persenDiskon;
+    bool sudahPakaiSkill; // reset tiap awal giliran
+    int percobaanKeluarPenjara; // 0-3, reset saat bebas
+
+public:
+    Pemain(const std::string& username, int saldoAwal);
+    ~Pemain();
+
+    //operator overload 
+    Pemain& operator+=(int amount);   // terima uang
+    Pemain& operator-=(int amount);   // bayar uang
+    bool operator>(const Pemain& other) const;  // bandingin kekayaan
+    bool operator<(const Pemain& other) const;  // bandingin kekayaan
+
+    //hanya set posisi pemain. Aturan move di papan handled by MovementController 
+    void setPosisi(int pos) { posisi = pos; }
+
+    //kartu management 
+    void tambahKartu(KartuKemampuanSpesial* kartuBaru, DeckKartu<KartuKemampuanSpesial>& deckSkill);  
+    void buangKartu(int index, DeckKartu<KartuKemampuanSpesial>& deckSkill);  //digunakan kalau kartuDiTangan penuh 
+    void gunakanKartu(int index, PlayerActionService& svc, DeckKartu<KartuKemampuanSpesial>& deckSkill, bool bolehPakaiSkill); 
+
+    //status management
+    void setStatus(const StatusPemain& s) { status = s; }
+    void setShieldAktif(bool val)        { shieldAktif = val; }
+    void setDiscountAktif(bool val, int persen = 0) { discountAktif = val; persenDiskon = persen; }
+    void resetPercobaanPenjara()         { percobaanKeluarPenjara = 0; }
+    void tambahPercobaanPenjara()        { percobaanKeluarPenjara++; }
+    void resetSkillUsage()               { sudahPakaiSkill = false; }  // dipanggil awal giliran
+
+    //properti management. HitungAsetRailroad dan hitungAsetUtility handled by ManagerProperti
+    void tambahAset(Properti* p);
+    void hapusAset(Properti* p);
+
+    //getter
+    const std::string& getUsername()    const { return username; }
+    int  getPosisi()                    const { return posisi; }
+    int  getSaldo()                     const { return saldo; }
+    const StatusPemain& getStatus()      const { return status; }
+    bool isShieldAktif()                const { return shieldAktif; }
+    bool isDiscountAktif()              const { return discountAktif; }
+    bool isSudahPakaiSkill()            const { return sudahPakaiSkill; }
+    int  getPersenDiskon()              const { return persenDiskon; }
+    int  getPercobaanKeluarPenjara()    const { return percobaanKeluarPenjara; }
+    const std::vector<KartuKemampuanSpesial*>& getKartuDiTangan() const { return kartuDiTangan; }
+    const std::vector<Properti*>&              getAsetPemain()    const { return asetPemain ; }
+
+    void setKartuDiTangan(const std::vector<KartuKemampuanSpesial*>& kartu) {
+        kartuDiTangan = kartu;
+    }
+    //helper
+    std::string getStatusString();
+};
+--- ./include/models/Papan.hpp ---
+#pragma once
+#include "Petak/Petak.hpp"
+#include "Petak/PetakProperti.hpp"
+#include "Petak/PetakAksi.hpp"
+#include "Petak/PetakSpesial.hpp"
+#include "PlayerActionService.hpp"
+#include "Properti/ManagerProperti.hpp"
+#include <vector>
+
+class Papan{
+private:
+    std::vector<Petak*> daftarPetak;
+
+public:
+    Papan(ManagerProperti& manager, ConfigData& configData); 
+
+    Petak* getPetak(int indeks);
+
+    Petak* getPetak(const std::string& kode);
+
+    Petak* findNearestByKode(const std::string& kode, int indeks);
+
+    int getTotalPetak() const;
+
+    ~Papan();
+};
+--- ./include/models/Dadu.hpp ---
+#pragma once
+#include <random>
+
+class Dadu {
+private:
+    int d1;
+    int d2;
+    std::mt19937 rng;
+
+public:
+    Dadu();
+
+    void rollRandom();                        
+    void rollManual(int v1, int v2);           
+    
+    int getNilaid1() const { return d1; }
+    int getNilaid2() const { return d2; }
+    int getTotalNilaiDadu()  const { return d1 + d2; }
+    bool isDouble() const { return d1 == d2; }
+};
+--- ./include/models/ConfigData.hpp ---
+#pragma once
+#include <map>
+#include <vector>
+#include <string>
+#include <utility>
+
+class PropertiConfig{
+private:
+    int id;
+    std::string kode;
+    std::string nama;
+    std::string jenis;
+    std::string warna;
+    int hargaLahan;
+    int nilaiGadai;
+
+    int hargaBangunRumah;
+    int hargaBangunHotel;
+    std::vector<int> hargaSewa; //untuk setiap prop level
+public:
+    //default ctor
+    PropertiConfig();
+    
+    //ctor
+    PropertiConfig(int id, std::string kode, std::string nama, std::string jenis, std::string warna, int hargaLahan,
+                   int nilaiGadai, int hargaBangunRumah, int hargaBangunHotel, std::vector<int> hargaSewa);
+
+    //getter
+    int getId() const;
+    const std::string &getKode() const;
+    const std::string &getNama() const;
+    const std::string &getJenis() const;
+    const std::string &getWarna() const;
+    int getHargaLahan() const;
+    int getNilaiGadai() const;
+    int getHargaBangunRumah() const;
+    int getHargaBangunHotel() const;
+
+    const std::vector<int> &getHargaSewa() const;
+    int getHargaSewa(int level) const;
+};
+class AksiConfig{
+private:
+    int id = 0;
+    std::string kode;
+    std::string nama;
+    std::string jenis;
+    std::string warna;
+public:
+    //default ctor
+    AksiConfig() = default;
+    //ctor
+    AksiConfig(int id, std::string kode, std::string nama, std::string jenis, std::string warna);
+    //getter
+    int getId() const;
+    const std::string &getKode() const;
+    const std::string &getNama() const;
+    const std::string &getJenis() const;
+    const std::string &getWarna() const;
+};
+
+class ConfigData{
+private:
+    std::map<int, PropertiConfig> propertiMap; //untuk setiap prop id <-> its detail
+    std::map<int, AksiConfig> aksiMap; //untuk setiap petak aksi id <-> its detail 
+    std::map<int, int> hargaSewaRailroad; //untuk setiap jumlahRailroad
+    std::map<int, int> pengaliUtility; //untuk setiap jumlahUtility
+    int pphFlat;
+    int pphPersen;
+    int pbmFlat;
+    int gajiGo;
+    int dendaPenjara;
+    int maxTurn;
+    int uangAwalPemain;
+public:
+    //ctor
+    ConfigData(int pphFlat, int pphPersen, int pbmFlat, int gajiGo, int dendaPenjara,
+               int maxTurn, int uangAwal, std::map<int, PropertiConfig> propertiMap, std::map<int, AksiConfig> aksiMap,
+               std::map<int, int> sewaRailroad, std::map<int, int> pengaliUtility);
+
+    //getter
+    const std::map<int, PropertiConfig> &getPropertiMap() const;
+    const PropertiConfig &getPropertiMap(const int &idProperti) const;
+
+    const std::map<int, AksiConfig> &getAksiMap() const;
+    const AksiConfig &getAksiMap(const int &idAksi) const;
+
+    const std::map<int, int> &getHargaSewaRailroad() const;
+    int getHargaSewaRailroad(int jumlahRailroad) const;
+
+    const std::map<int, int> &getPengaliUtility() const;
+    int getPengaliUtility(int jumlahUtility) const; 
+
+    int getPphFlat() const;
+    int getPphPersen() const;
+    int getPbmFlat() const;
+    int getGajiGo() const;
+    int getDendaPenjara() const;
+    int getMaxTurn() const;
+    int getUangAwalPemain() const;
+};
+--- ./include/models/PlayerActionService.hpp ---
+#pragma once
+#include <string>
+#include <vector>
+#include "ConfigData.hpp"
+#include "Dadu.hpp"
+#include "../core/BangkrutDanEndGame.hpp"
+
+class Pemain;
+class PropertiStreet;
+class Properti;
+class MovementController;
+class ManagerPenjara;
+class ManagerProperti;
+class ManagerFestival;
+class LogTransaksiGame;
+
+class PlayerActionService {
+private:
+    MovementController* movementController;
+    ManagerPenjara* managerPenjara;
+    ManagerProperti* managerProperti;
+    ManagerFestival* managerFestival;
+    ConfigData* config;
+    LogTransaksiGame* logger;
+
+    std::vector<Pemain*>* daftarPemain;
+    bool arahNormal; // arah giliran bermain, kalau true = normal, false = reverse
+    int* currentTurnIdx; // turn index saat ini untuk reverse
+
+public:
+    PlayerActionService(MovementController* mc, ManagerPenjara* mp, ManagerProperti* mpr, ManagerFestival* mf, LogTransaksiGame* log, std::vector<Pemain*>* pemain, int* turnIdx);
+    ~PlayerActionService() = default;
+    void movePlayerRelative(Pemain& p, int n); // untuk maju dan mundur sejumlah n petak, kalau negatif berarti mundur
+    void teleportByInput(Pemain& p, const std::string& kodeOrIndeks); // teleport ke petak berdasarkan input
+    void moveToNearestStation(Pemain& p); // pindah ke stasiun terdekat, dipakai KartuPergiKeStasiunTerdekat
+    void sendToJail(Pemain& p); // kirim pemain ke penjara
+    void escapeFromJailByCard(Pemain& p); // bebaskan pemain dari penjara pakai kartu
+    void jailOpponent(Pemain& p); // untuk kartu bonus PenjaraKanCard, bisa menampilkan daftar pemain aktif selain diri sendiri lalu pilih yang akan dipenjarakan
+    void transferMoney(Pemain* asal, Pemain* tujuan, int jumlah); // nullptr = ke/dari Bank
+    void collectFromAllPlayers(Pemain& penerima, int jumlahPerOrang); // untuk KartuHariUlangTahun
+    void payToAllPlayers(Pemain& pembayar, int jumlahPerOrang); // untuk KartuMauNyaleg
+
+    /** Hitung dan eksekusi pembayaran sewa. */
+    void bayarSewa(Pemain& penyewa, Properti& properti, int nilaiDadu);
+    /** Eksekusi pembelian properti oleh pemain. */
+    void beliProperti(Pemain& pemain, Properti& properti);
+    /** Eksekusi gadai properti ke bank. */
+    void gadaiProperti(Pemain& pemain, Properti& properti);
+    /** Eksekusi bangun rumah/hotel pada properti street. */
+    void bangunProperti(Pemain& pemain, PropertiStreet& properti);
+
+    void demolishOpponentProperty(Pemain& pemain); // untuk DemolitionCard
+    void pullPlayerAhead(Pemain& pemain); // untuk LassoCard
+    void rotateAllHandCards(Pemain& pemain); // untuk bonus RotasiKartuCard
+    void reverseTurnOrder(Pemain& pemain); // untuk bonus ReverseCard
+
+    /* Buat Kebangkrutan */
+    void beriSemuaAset (Pemain* asal, Pemain *tujuan); // nullptr = bank
+
+    void logFestivalActivation(Pemain& pemain, Properti& prop, int pengali, int durasi);
+    void logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail);
+    bool isArahNormal() const { return arahNormal; }
+    const std::vector<Pemain*>& getDaftarPemain() const { return *daftarPemain; }
+
+    ConfigData* getConfig() { return config; }
+};
+
+--- ./include/models/Petak/PetakKartu.hpp ---
+#pragma once
+#include "PetakAksi.hpp"
+#include "../Kartu/DeckKartu.hpp"
+#include "../Kartu/Kartu.hpp"
+
+class PetakKartu : public PetakAksi {
+public:
+    enum class JenisKartu { KESEMPATAN, DANA_UMUM };
+private:
+    JenisKartu jenis;
+    DeckKartu<Kartu>* deck;
+public:
+    PetakKartu(int indeks, const std::string& kode, const std::string& nama, JenisKartu jenis, DeckKartu<Kartu>* deck);
+    ~PetakKartu() = default;
+    void onLanded(Pemain& pemain, PlayerActionService& svc) override;
+    JenisKartu getJenis() const { return jenis; }
+};
+--- ./include/models/Petak/PetakPajak.hpp ---
+#pragma once
+#include "PetakAksi.hpp"
+#include "../ConfigData.hpp"
+
+enum class JenisPajak { PAJAK_BARANG_MEWAH, PAJAK_PENGHASILAN };
+
+class PetakPajak : public PetakAksi {
+protected:
+    JenisPajak jenis;
+    ConfigData* config;
+
+public:
+    PetakPajak(int indeks, const std::string& kode, const std::string& nama, ConfigData* konfigurasi);
+    ~PetakPajak() = default;
+    void onLanded(Pemain& pemain, PlayerActionService& svc) override;
+
+};
+--- ./include/models/Petak/PetakSpesial.hpp ---
+#pragma once
+#include <iostream>
+#include <vector>
+#include <map>
+#include <algorithm>
+#include <string>
+#include "Petak.hpp"
+#include "PetakAksi.hpp"
+#include "../Pemain.hpp"
+#include "../ConfigData.hpp"
+#include "../Dadu.hpp"
+#include "../PlayerActionService.hpp"
+
+using namespace std;
+
+class PetakSpesial : public PetakAksi {
+public :
+    PetakSpesial::PetakSpesial(int indeks, const std::string& kode, const std::string& nama);
+    virtual void onLanded (Pemain &p, PlayerActionService actionService) = 0;
+
+};
+
+class PetakMulai : public PetakSpesial {
+public : 
+    PetakMulai::PetakMulai(int indeks, const std::string& kode, const std::string& nama);
+    void onLanded (Pemain &p, PlayerActionService actionService) override;
+};
+
+
+class PetakPenjara : public PetakSpesial {
+protected : 
+    ManagerPenjara* manager_penjara;
+public : 
+    PetakPenjara::PetakPenjara(int indeks, const std::string& kode, const std::string& nama);
+    void onLanded (Pemain &p, PlayerActionService actionService) override;
+
+
+};
+
+class PetakPergiPenjara : public PetakSpesial {
+public : 
+    PetakPergiPenjara::PetakPergiPenjara(int indeks, const std::string& kode, const std::string& nama);
+    void onLanded (Pemain &p, PlayerActionService actionService) override;
+    void masukkanKePenjara (Pemain &p, PlayerActionService actionService);
+
+};
+
+class PetakBebasParkir : public PetakSpesial {
+public : 
+    PetakBebasParkir::PetakBebasParkir(int indeks, const std::string& kode, const std::string& nama);
+    void onLanded (Pemain &p, PlayerActionService actionService) override;
+
+};
+--- ./include/models/Petak/PetakProperti.hpp ---
+#pragma once
+#include "Petak.hpp"
+#include "../Properti/Properti.hpp"
+#include <string>
+
+class PetakProperti : public Petak {
+protected:
+    Properti* properti;
+
+public:
+    PetakProperti(int indeks, const std::string& kode, const std::string& nama, Properti* properti);
+
+    virtual void onLanded(Pemain& pemain, PlayerActionService& actionService);
+
+    virtual ~PetakProperti() = default;
+};
+--- ./include/models/Petak/Petak.hpp ---
+#pragma once
+#include <string>
+#include "../PlayerActionService.hpp"
+#include "../Pemain.hpp"
+
+
+class Petak{
+protected:
+    int indeks;
+    std::string kode;
+    std::string nama;
+
+public:
+    Petak(int indeks, const std::string& kode, const std::string& nama);
+    
+    int getIndeks() const;
+
+    const std::string& getKode() const;
+
+    const std::string& getNama() const;
+
+    std::string getDisplayInfo() const;
+
+    virtual void onLanded(Pemain& pemain, PlayerActionService& actionService) = 0;
+
+    virtual ~Petak() = default;
+
+};
+--- ./include/models/Petak/PetakAksi.hpp ---
+#pragma once
+#include "Petak.hpp"
+
+class PetakAksi : public Petak{
+public:
+    PetakAksi(int indeks, const std::string& kode, const std::string& nama);
+
+    virtual void onLanded(Pemain& pemain, PlayerActionService& actionService) = 0;
+
+    virtual ~PetakAksi() = default;
+};
+--- ./include/models/Petak/PetakFestival.hpp ---
+#pragma once
+#include "PetakAksi.hpp"
+#include <map>
+#include <utility>
+#include <string>
+
+class Properti;
+class Pemain;
+class PlayerActionService;
+
+class ManagerFestival {
+private:
+    std::map<Properti*, std::pair<int, int>> efekAktif;
+    static constexpr int PENGALI_MAKS = 8;
+    static constexpr int DURASI_DEFAULT = 3;
+public:
+    void applyFestival(Properti* properti);
+    void updateDurasi(Pemain* pemilik);
+    int getPengali(Properti* properti) const;
+    int getSisaDurasi(Properti* properti) const;
+    bool isAktif(Properti* properti) const;
+    std::string getFestivalString(Properti* properti) const;
+};
+
+class PetakFestival : public PetakAksi {
+private:
+    ManagerFestival* managerFestival;
+public:
+    PetakFestival(int indeks, const std::string& kode, const std::string& nama, ManagerFestival* mgr);
+    void onLanded(Pemain& pemain, PlayerActionService& svc) override;
+};
+--- ./include/models/Kartu/DeckKartu.hpp ---
+#pragma once
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <stdexcept>
+#include <string>
+
+template <typename T>
+class DeckKartu {
+private:
+    std::vector<T*> tumpukanKartu; // sumber kartu yang dapat diambil
+    std::vector<T*> pembuangan; // kartu yang telah digunakan
+public:
+    DeckKartu() = default;
+    ~DeckKartu() = default;
+    void tambahKeKartu(T* kartu) {
+        tumpukanKartu.push_back(kartu);
+    }
+    T* ambilKartu() {
+        if (tumpukanKartu.empty()) {
+            acakUlang();
+        }
+        if (tumpukanKartu.empty()) {
+            throw std::runtime_error("Deck kosong");
+        }
+        T* kartu = tumpukanKartu.back();
+        tumpukanKartu.pop_back();
+        return kartu;
+    }
+    void buangKartu(T* kartu) {
+        pembuangan.push_back(kartu);
+    }
+    void acakUlang() {
+        for (T* k : pembuangan) {
+            tumpukanKartu.push_back(k);
+        }
+        pembuangan.clear();
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::shuffle(tumpukanKartu.begin(), tumpukanKartu.end(), gen);
+    }
+    int ukuran() const {
+        return static_cast<int>(tumpukanKartu.size());
+    }
+    int ukuranPembuangan() const {
+        return static_cast<int>(pembuangan.size());
+    }
+    bool kosong() const {
+        return tumpukanKartu.empty() && pembuangan.empty();
+    }
+    const std::vector<T*>& getTumpukan() const { return tumpukanKartu; }
+    const std::vector<T*>& getPembuangan() const { return pembuangan; }
+};
+--- ./include/models/Kartu/KartuKesempatan.hpp ---
+#pragma once
+#include "Kartu.hpp"
+
+class KartuKesempatan : public Kartu {
+public:
+    explicit KartuKesempatan(const std::string& nama) : Kartu(nama) {}
+    virtual ~KartuKesempatan() = default;
+    virtual void jalankanEfek(Pemain& pemain, PlayerActionService& svc) = 0;
+};
+
+class KartuPergiKeStasiunTerdekat : public KartuKesempatan {
+public:
+    KartuPergiKeStasiunTerdekat() : KartuKesempatan("Pergi ke stasiun terdekat.") {}
+    ~KartuPergiKeStasiunTerdekat() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+
+class KartuMundurTigaPetak : public KartuKesempatan {
+public:
+    KartuMundurTigaPetak() : KartuKesempatan("Mundur 3 petak.") {}
+    ~KartuMundurTigaPetak() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+
+class KartuMasukPenjara : public KartuKesempatan {
+public:
+    KartuMasukPenjara() : KartuKesempatan("Masuk Penjara.") {}
+    ~KartuMasukPenjara() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+
+class KartuBebasPenjara : public KartuKesempatan {
+public:
+    KartuBebasPenjara() : KartuKesempatan("Bebas dari Penjara.") {}
+    ~KartuBebasPenjara() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+--- ./include/models/Kartu/KartuDanaUmum.hpp ---
+#pragma once
+#include "Kartu.hpp"
+
+class KartuDanaUmum : public Kartu {
+public:
+    explicit KartuDanaUmum(const std::string& nama) : Kartu(nama) {}
+    virtual ~KartuDanaUmum() = default;
+    virtual void jalankanEfek(Pemain& pemain, PlayerActionService& svc) = 0;
+};
+
+class KartuHariUlangTahun : public KartuDanaUmum {
+public:
+    static constexpr int JUMLAH = 100;
+    KartuHariUlangTahun() : KartuDanaUmum("Ini adalah hari ulang tahun Anda. Dapatkan M100 dari setiap pemain") {}
+    ~KartuHariUlangTahun() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+
+class KartuBiayaDokter : public KartuDanaUmum {
+public:
+    static constexpr int JUMLAH = 700;
+    KartuBiayaDokter() : KartuDanaUmum("Biaya dokter, bayar M700") {}
+    ~KartuBiayaDokter() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+
+class KartuMauNyaleg : public KartuDanaUmum {
+public:
+    static constexpr int JUMLAH = 200;
+    KartuMauNyaleg() : KartuDanaUmum("Anda mau nyaleg, bayar M200 kepada setiap pemain") {}
+    ~KartuMauNyaleg() = default;
+    void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+};
+
+--- ./include/models/Kartu/Kartu.hpp ---
+#pragma once
+#include <string>
+
+// forward declarations
+class Pemain;
+class PlayerActionService;
+
+class Kartu {
+protected:
+    std::string namaKartu;
+public:
+    explicit Kartu(const std::string& nama) : namaKartu(nama) {}
+    virtual ~Kartu() = default;
+    virtual void jalankanEfek(Pemain& pemain, PlayerActionService& svc) = 0;
+    const std::string& getNamaKartu() const { return namaKartu; }
+};
+
+--- ./include/models/Kartu/DeckFactory.hpp ---
+#pragma once
+#include "DeckKartu.hpp"
+#include "Kartu.hpp"
+#include "KartuKesempatan.hpp"
+#include "KartuDanaUmum.hpp"
+#include "KartuKemampuanSpesial.hpp"
+#include <random>
+#include <memory>
+
+inline void isiDeckKesempatan(DeckKartu<Kartu>& deck) {
+    deck.tambahKeKartu(new KartuPergiKeStasiunTerdekat());
+    deck.tambahKeKartu(new KartuMundurTigaPetak());
+    deck.tambahKeKartu(new KartuMasukPenjara());
+    deck.tambahKeKartu(new KartuBebasPenjara());
+    deck.acakUlang();
+}
+
+inline void isiDeckDanaUmum(DeckKartu<Kartu>& deck) {
+    deck.tambahKeKartu(new KartuHariUlangTahun());
+    deck.tambahKeKartu(new KartuBiayaDokter());
+    deck.tambahKeKartu(new KartuMauNyaleg());
+    deck.acakUlang();
+}
+
+inline int randRange(int lo, int hi) {
+    static std::mt19937 rng{ std::random_device{}() };
+    std::uniform_int_distribution<int> dist(lo, hi);
+    return dist(rng);
+}
+
+inline void isiDeckSkill(DeckKartu<KartuKemampuanSpesial>& deck, bool includeBonus = true) {
+    for (int i = 0; i < 4; ++i) {
+        deck.tambahKeKartu(new MoveCard(randRange(1, 12)));
+    }
+    for (int i = 0; i < 3; ++i) {
+        deck.tambahKeKartu(new DiscountCard(randRange(1, 5) * 10));
+    }
+    for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new ShieldCard());
+    for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new TeleportCard());
+    for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new LassoCard());
+    for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new DemolitionCard());
+    // kartu bonus
+    if (includeBonus) {
+        for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new RotasiKartuCard());
+        for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new ReverseCard());
+        for (int i = 0; i < 2; ++i) deck.tambahKeKartu(new PenjaraKanCard());
+    }
+    deck.acakUlang();
+}
+--- ./include/models/Kartu/KartuKemampuanSpesial.hpp ---
+#pragma once
+#include <string>
+#include <vector>
+
+// forward declarations
+class Pemain;
+class PlayerActionService;
+
+class KartuKemampuanSpesial {
+protected:
+    std::string namaKartu;
+public:
+    explicit KartuKemampuanSpesial(const std::string& nama) : namaKartu(nama) {}
+    virtual ~KartuKemampuanSpesial() = default;
+    virtual void gunakan(Pemain& pemain, PlayerActionService& svc) = 0;
+    virtual std::string getDeskripsi() const = 0;
+    virtual std::string getNilaiState() const { return ""; }
+    virtual std::string getSisaDurasiState() const { return ""; }
+    const std::string& getNamaKartu() const { return namaKartu; }
+};
+
+class MoveCard : public KartuKemampuanSpesial {
+private:
+    int langkah;
+public:
+    explicit MoveCard(int langkah);
+    ~MoveCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+    std::string getNilaiState() const override;
+    int getLangkah() const { return langkah; }
+};
+
+class DiscountCard : public KartuKemampuanSpesial {
+private:
+    int persenDiskon;
+    int sisaDurasi;
+public:
+    explicit DiscountCard(int persen);
+    ~DiscountCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+    std::string getNilaiState() const override;
+    std::string getSisaDurasiState() const override;
+    int getPersenDiskon() const { return persenDiskon; }
+    int getSisaDurasi() const { return sisaDurasi; }
+    void setSisaDurasi(int d) { sisaDurasi = d; }
+};
+
+class ShieldCard : public KartuKemampuanSpesial {
+public:
+    ShieldCard();
+    ~ShieldCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+
+class TeleportCard : public KartuKemampuanSpesial {
+public:
+    TeleportCard();
+    ~TeleportCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+
+class LassoCard : public KartuKemampuanSpesial {
+public:
+    LassoCard();
+    ~LassoCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+
+class DemolitionCard : public KartuKemampuanSpesial {
+public:
+    DemolitionCard();
+    ~DemolitionCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+
+
+// kartu bonus
+
+class RotasiKartuCard : public KartuKemampuanSpesial {
+public:
+    RotasiKartuCard();
+    ~RotasiKartuCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+
+class ReverseCard : public KartuKemampuanSpesial {
+public:
+    ReverseCard();
+    ~ReverseCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+
+class PenjaraKanCard : public KartuKemampuanSpesial {
+public:
+    PenjaraKanCard();
+    ~PenjaraKanCard() = default;
+    void gunakan(Pemain& pemain, PlayerActionService& svc) override;
+    std::string getDeskripsi() const override;
+};
+--- ./include/models/Properti/PropertiUtility.hpp ---
+#pragma once
+#include "Properti.hpp"
+
+class PropertiUtility : public Properti{
+public:
+    PropertiUtility(const PropertiConfig& config);
+    int hitungSewa(int dadu, ManagerProperti& manager) override;
+    std::string getJenisString() const override;
+    ~PropertiUtility() = default;
+}; 
+--- ./include/models/Properti/Properti.hpp ---
+#pragma once
+#include <string>
+#include "../Pemain.hpp"
+#include "../ConfigData.hpp"
+
+class ManagerProperti;
+
+class Properti{
+public:
+    enum class StatusProperti{
+        BANK,
+        OWNED,
+        MORTGAGED
+    };
+    Properti(const PropertiConfig& config);
+
+    virtual int hitungSewa(int dadu, ManagerProperti& manager) = 0;
+
+    const std::string& getKode() const;
+
+    const std::string& getNamaProperti() const;
+
+    StatusProperti getStatus() const;
+
+    virtual std::string getJenisString() const;
+    virtual std::string getBangunanString() const;
+    std::string getStatusString() const;
+    std::string getPemilikString() const;
+
+    Pemain* getPemilik() const;
+
+    const PropertiConfig* getConfigProperti (); 
+
+    void setPemilik(Pemain* pemilik);
+
+    void setStatus (StatusProperti s);
+
+    void gadai();
+
+    void batalGadai();
+
+    int getNilaiGadai() const;
+
+    virtual ~Properti() = default;
+
+protected:
+    const PropertiConfig* config;
+    Pemain* pemilik;
+    StatusProperti status;
+
+};
+--- ./include/models/Properti/PropertiRailroad.hpp ---
+#pragma once
+#include "Properti.hpp"
+
+class PropertiRailroad : public Properti{
+public:
+    PropertiRailroad(const PropertiConfig& config);
+    int hitungSewa(int dadu, ManagerProperti& manager) override;
+    std::string getJenisString() const override;
+    ~PropertiRailroad() = default;
+};
+--- ./include/models/Properti/ManagerProperti.hpp ---
+#pragma once
+#include "Properti.hpp"
+#include "PropertiStreet.hpp"
+#include "PropertiRailroad.hpp"
+#include "PropertiUtility.hpp"
+#include "../ConfigData.hpp"
+#include <vector>
+#include <string>
+
+class ManagerProperti{
+protected:
+    std::map<int, Properti*> daftarProperti;
+    const ConfigData& configData;
+    
+public:
+    ManagerProperti(const ConfigData& configData);
+
+    bool isMonopoly(Pemain* pemain, PropertiStreet::ColorGroup warna);
+
+    bool isBisaBangun(PropertiStreet* target); // level < 5 dan selisih jumlah rumah antar petak tidak lebih dari 1
+
+    void jualSemuaBangunan(Pemain* pemain, PropertiStreet::ColorGroup warna);
+
+    int hitungLikuidasi(Pemain* pemain);
+
+    bool isPunyaSemuaDalamGrup(Pemain* pemain, PropertiStreet::ColorGroup warna);
+
+    std::vector<PropertiStreet*> getPropertiByGrup(PropertiStreet::ColorGroup warna);
+
+    Properti* getProperti(int id);
+
+    int hitungUtility(Pemain* pemain);
+
+    int getPengaliUtility(int jumlah);
+
+    int hitungRailroad(Pemain* pemain);
+    
+    int getHargaSewaRailroad(int jumlah);
+
+    ~ManagerProperti();
+
+    const std::map<std::string, Properti*>& getDaftarProperti() { return daftarProperti; }
+    int hitungJumlahProperti() { return daftarProperti.size(); }
+};
+--- ./include/models/Properti/PropertiStreet.hpp ---
+#pragma once
+#include "Properti.hpp"
+
+class PropertiStreet : public Properti{
+public:
+    enum class ColorGroup{
+        DEFAULT,
+        COKLAT,
+        BIRU_MUDA,
+        MERAH_MUDA,
+        ABU_ABU,
+        ORANGE,
+        MERAH,
+        KUNING,
+        HIJAU,
+        BIRU_TUA
+    };
+
+    PropertiStreet(const PropertiConfig& config);
+    bool punyaHotel() const;
+    int hitungSewa(int dadu, ManagerProperti& manager) override;
+    void bangun(ManagerProperti& manager); //maks 4 rumah + 1 hotel
+    int getJumlahBangunan() const;
+    int getHargaBangun() const;
+    std::string getJenisString() const override;
+    std::string getBangunanString() const override;
+    std::string getJumlahBangunanString() const;
+    ColorGroup getWarna() const;
+    void turunkanBangunan();
+    ColorGroup convertWarna(const std::string& warnaStr);
+    ~PropertiStreet() = default;
+
+private:
+    ColorGroup warna;
+    int level; // 0 : kosong - 5 : punya hotel dan 4 rumah 
+    std::vector<int> tabelHargaSewa;
+};
+
+--- ./include/core/GameEngine.hpp ---
+#pragma once
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <random>
+#include <cstdlib>
+#include <ctime>
+#include "../models/ConfigData.hpp"
+#include "../models/Pemain.hpp"
+#include "../models/PlayerActionService.hpp"
+#include "../models/ManagerPenjara.hpp"
+#include "../models/Papan.hpp"
+#include "../models/Dadu.hpp"
+#include "../models/Properti/ManagerProperti.hpp"
+#include "../models/Kartu/Kartu.hpp"
+#include "../models/Kartu/DeckKartu.hpp"
+#include "../utils/LogTransaksiGame.hpp"
+#include "../views/Formatter.hpp"
+#include "BangkrutDanEndGame.hpp"
+using namespace std;
+
+// Forward declarations
+class Petak;
+class Properti;
+class PropertiStreet;
+template <typename T> class DeckKartu;
+
+class GameEngine {
+private :
+    // Game Data
+    ConfigData* configData;
+    vector<Pemain*> listPemain;
+    Papan* papanPermainan;
+    LogTransaksiGame* logGame;
+    DeckKartu<Kartu>* deckKartu;
+    Dadu* dadu;
+    ManagerPenjara* managerPenjara;
+    ManagerProperti* managerProperti;
+    ManagerFestival* managerFestival;
+    PlayerActionService* actionService;
+    
+    // Turn Management (dari TurnController)
+    vector<Pemain*> urutanPemain;
+    int currentTurnIndex;
+    int maxTurn;
+    bool arahNormalTurn;
+
+public :
+    GameEngine();
+    ~GameEngine();
+    
+    void startGame();
+    
+    // Methods buat TurnController
+    void randomizeTurn();
+    void startTurn(Pemain* p, int currentTurn);
+
+    // Getter dan Setter untuk Game Data
+    ConfigData* getConfigData() const { return configData; }
+    void setConfigData(ConfigData* config) { this->configData = config; }
+
+    vector<Pemain*>& getListPemain() { return listPemain; }
+    void setListPemain(vector<Pemain*>& pemain) { this->listPemain = pemain; }
+
+    Papan* getPapanPermainan() const { return papanPermainan; }
+    void setPapanPermainan(Papan* papan) { this->papanPermainan = papan; }
+
+    LogTransaksiGame* getLogGame() const { return logGame; }
+    void setLogGame(LogTransaksiGame* log) { this->logGame = log; }
+
+    DeckKartu<Kartu>* getDeckKartu() const { return deckKartu; }
+    void setDeckKartu(DeckKartu<Kartu>* deck) { this->deckKartu = deck; }
+
+    Dadu* getDadu() const { return dadu; }
+    void setDadu(Dadu* d) { this->dadu = d; }
+
+    ManagerPenjara* getManagerPenjara() const { return managerPenjara; }
+    void setManagerPenjara(ManagerPenjara* manager) { this->managerPenjara = manager; }
+
+    ManagerProperti* getManagerProperti() const { return managerProperti; }
+    void setManagerProperti(ManagerProperti* manager) { this->managerProperti = manager; }
+
+    ManagerFestival* getManagerFestival() const { return managerFestival; }
+    void setManagerFestival(ManagerFestival* manager ) { this->managerFestival = manager; }
+
+    PlayerActionService* getActionService() const { return actionService; }
+    void setActionService(PlayerActionService* service) { this->actionService = service; }
+
+    // Getter dan Setter untuk Turn Management
+    vector<Pemain*>& getUrutanPemain() { return urutanPemain; }
+    void setUrutanPemain(vector<Pemain*>& urutan) { this->urutanPemain = urutan; }
+
+    int getCurrentTurnIndex() const { return currentTurnIndex; }
+    void setCurrentTurnIndex(int index) { this->currentTurnIndex = index; }
+
+    int getMaxTurn() const { return maxTurn; }
+    void setMaxTurn(int max) { this->maxTurn = max; }
+
+    bool isArahNormalTurn() const { return arahNormalTurn; }
+    void setArahNormalTurn(bool arah) { this->arahNormalTurn = arah; }
+
+};
+--- ./include/core/BangkrutDanEndGame.hpp ---
+#pragma once
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include "../models/ConfigData.hpp"
+#include "../models/Pemain.hpp"
+#include "../models/Properti/Properti.hpp"
+#include "../models/Properti/PropertiStreet.hpp"
+#include "../views/Formatter.hpp"
+using namespace std;
+
+class Kebangkrutan {
+public :
+    static void declareBangkrut (Pemain *p);
+
+    static void tampilkanBangkrut (Pemain *p);
+
+};
+
+class Likuidasi {
+protected:
+    static const ConfigData* config;
+
+public :
+    static bool bisaBayarDenganLikuidasi (Pemain *p, int harga); 
+    static bool bisaBayarLangsung (Pemain* p, int harga);
+
+    static int totalLikuidasiSeluruhAsetGadai (Pemain *p); // likuidasinya gadai semua
+    static int totalLikuidasiSeluruhAsetJual (Pemain *p); // likuidasinya jual semua
+
+    static void tampilkanPanelLikuidasi (Pemain *p, int harga);
+
+};
+
+class SelesaiGame {
+public :
+    static Pemain* getPemenang (vector<Pemain*> listPemain);
+    static bool sisaSatuOrang (vector<Pemain*> listPemain); // sisa satu orang yang belom bangkrut
+
+    static void tampilPanelSelesaiKarenaMaxTurn (int maxTurn);
+    static void tampilPanelSelesaiKarenaBangkrut ();
+    static void tampilkanPemenang (Pemain *p);
+
+};
+--- ./src/main.cpp ---
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "core/GameEngine.hpp"
+#include "utils/ConfigLoader.hpp"
+#include "utils/NimonspoliException.hpp"
+#include "models/Pemain.hpp"
+
+using namespace std;
+
+void setupGame(GameEngine &engine)
+{
+    engine.setPapanPermainan(new Papan());
+    engine.setLogGame(new LogTransaksiGame());
+    engine.setDeckKartu(new DeckKartu<Kartu>());
+    engine.setDadu(new Dadu());
+    engine.setManagerPenjara(new ManagerPenjara());
+    engine.setManagerProperti(new ManagerProperti());
+    engine.setActionService(new PlayerActionService());
+    engine.setManagetrFestival(new ManagerFestival());
+}
+--- ./src/utils/ConfigLoader.cpp ---
+#include "utils/ConfigLoader.hpp"
+#include "utils/FileHelper.hpp"
+#include "utils/NimonspoliException.hpp"
+#include <sstream>
+#include <utility>
+
+using namespace std;
+
+ConfigData ConfigLoader::loadAll(const string& folderPath){
+    auto prop = loadProperty(FileHelper::readAllLines(folderPath + "/property.txt"));
+    auto aksi = loadAksi(FileHelper::readAllLines(folderPath + "/aksi.txt"));
+    auto rr = loadRailroad(FileHelper::readAllLines(folderPath + "/railroad.txt"));
+    auto util = loadUtility(FileHelper::readAllLines(folderPath + "/utility.txt"));
+    auto tax = loadTax(FileHelper::readAllLines(folderPath + "/tax.txt"));
+    auto sp = loadSpecial(FileHelper::readAllLines(folderPath + "/special.txt"));
+    auto misc = loadMisc(FileHelper::readAllLines(folderPath + "/misc.txt"));
+
+    return ConfigData(tax.pphFlat, tax.pphPersen, tax.pbmFlat, sp.gajiGo, sp.dendaPenjara,
+                      misc.maxTurn, misc.uangAwal, move(prop), move(aksi), move(rr), move(util));
+}
+
+map<int, PropertiConfig> ConfigLoader::loadProperty(const vector<string>& lines){
+    map<int, PropertiConfig> propMap;
+   
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        int id;
+        string kode;
+        string nama;
+        string jenis;
+        string warna;
+        
+        if (!(iss >> id >> kode >> nama >> jenis >> warna)) {
+            continue;
+        }
+
+        if (jenis == "STREET") {
+            int hargaLahan, nilaiGadai, upgRumah, upgHotel;
+            vector<int> rent(6);
+            
+            if (!(iss >> hargaLahan >> nilaiGadai >> upgRumah >> upgHotel
+                      >> rent[0] >> rent[1] >> rent[2] >> rent[3] >> rent[4] >> rent[5])) {
+                continue;
+            }
+            
+            PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, upgRumah, upgHotel, rent);
+            propMap[id] = prop;
+            
+        } else if (jenis == "RAILROAD" || jenis == "UTILITY") {
+            // Untuk railroad gada harga upgrade dan hargaSewa handled via railroad.txt
+            // Begitu juga untuk utility gada harga upgrade dan hargaSewa tergantung faktor pengali handled via utility.txt
+            int hargaLahan, nilaiGadai;
+            
+            if (!(iss >> hargaLahan >> nilaiGadai)) {
+                continue;
+            }
+            vector<int> rent(6, 0); //0 0 0 0 0 0
+            PropertiConfig prop(id, kode, nama, jenis, warna, hargaLahan, nilaiGadai, 0, 0, rent);
+            propMap[id] = prop;
+            
+        } else {
+            continue;
+        }
+    }
+
+    //handle kalau kosong
+    if (propMap.empty()) {
+        throw FileTidakValidException();
+    }
+
+    return propMap;
+}
+
+map<int, int> ConfigLoader::loadRailroad(const vector<string>& lines) {
+    map<int, int> result;
+
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        int jumlah;
+        int biaya;
+        if (!(iss >> jumlah >> biaya)) {
+            continue;
+        }
+        result[jumlah] = biaya;
+    }
+
+    //handle kalau kosong
+    if (result.empty()) {
+        throw FileTidakValidException();
+    }
+
+    //handle key railroad harus berurutan mulai dari 1 sampai n 
+    int expected = 1;
+    for (const auto& entry : result) {
+        if (entry.first != expected) {
+            throw FileTidakValidException();
+        }
+        expected++;
+    }
+
+    //sewa tidak boleh negatif.
+    for (const auto& entry : result) {
+        if (entry.second < 0) {
+            throw FileTidakValidException();
+        }
+    }
+
+    return result;
+}
+
+map<int, int> ConfigLoader::loadUtility(const vector<string>& lines) {
+    map<int, int> result;
+
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        int jumlah;
+        int pengali;
+        if (!(iss >> jumlah >> pengali)) {
+            continue;
+        }
+        result[jumlah] = pengali;
+    }
+    //handle kalau kosong
+    if (result.empty()) {
+        throw FileTidakValidException();
+    }
+    
+    //handle key utility harus berurutan mulai dari 1 sampai n 
+    int expected = 1;
+    for (const auto& entry : result) {
+        if (entry.first != expected) {
+            throw FileTidakValidException();
+        }
+        expected++;
+    }
+
+    //pengali tidak boleh negatif.
+    for (const auto& entry : result) {
+        if (entry.second < 0) {
+            throw FileTidakValidException();
+        }
+    }
+
+    return result;
+}
+
+ConfigLoader::TaxData ConfigLoader::loadTax(const vector<string>& lines) {
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        TaxData data;
+        if (!(iss >> data.pphFlat >> data.pphPersen >> data.pbmFlat)) {
+            continue;
+        }
+        return data;
+    }
+    //handle kalau kosong
+    throw FileTidakValidException();
+}
+
+ConfigLoader::SpecialData ConfigLoader::loadSpecial(const vector<string>& lines) {
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        SpecialData data;
+        if (!(iss >> data.gajiGo >> data.dendaPenjara)) {
+            continue;
+        }
+        return data;
+    }
+    //handle kalau kosong
+    throw FileTidakValidException();
+}
+
+ConfigLoader::MiscData ConfigLoader::loadMisc(const vector<string>& lines) {
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        MiscData data;
+        if (!(iss >> data.maxTurn >> data.uangAwal)) {
+            continue;
+        }
+        return data;
+    }
+    //handle kalau kosong
+    throw FileTidakValidException();
+}
+
+map<int, AksiConfig> ConfigLoader::loadAksi(const vector<string>& lines){
+    map<int, AksiConfig> aksiMap;
+   
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+
+        istringstream iss(line);
+        int id;
+        string kode;
+        string nama;
+        string jenis;
+        string warna;
+        
+        if (!(iss >> id >> kode >> nama >> jenis >> warna)) {
+            continue;
+        }
+        AksiConfig petakAksi(id, kode, nama, jenis, warna);
+        aksiMap[id] = petakAksi;
+
+    }
+
+    //handle kalau kosong
+    if (aksiMap.empty()) {
+        throw FileTidakValidException();
+    }
+
+    return aksiMap;
+}
+--- ./src/utils/FileHelper.cpp ---
+#include "utils/FileHelper.hpp"
+#include "utils/NimonspoliException.hpp"
+#include <fstream>
+
+std::vector<std::string> FileHelper::readAllLines(const std::string& path){
+    std::ifstream file(path);
+
+    if (!file.is_open()) throw FileTidakValidException();
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(file, line)) {
+        lines.push_back(line);
+    }
+
+    return lines;
+}
+void FileHelper::writeAllLines(const std::string& path, const std::vector<std::string>& lines){
+    std::ofstream file(path);
+    for (const std::string& line : lines) {
+        file << line << '\n';
+    }
+}
+
+--- ./src/utils/LogTransaksiGame.cpp ---
+#include "utils/LogTransaksiGame.hpp"
+#include <utility>
+#include <algorithm>
+
+using namespace std;
+
+LogTransaksiEntry::LogTransaksiEntry(int ronde, string username, string aksi, string detail)
+    : ronde(ronde), username(move(username)), aksi(move(aksi)), detail(move(detail)) {}
+
+void LogTransaksiGame::tambahLog(LogTransaksiEntry log) {
+    logs.push_back(move(log));
+}
+
+vector<LogTransaksiEntry> LogTransaksiGame::getLogs(int top) const {
+    if (top <= 0 || logs.empty()) {
+        return {};
+    }
+
+    size_t count = min(static_cast<size_t>(top), logs.size());
+    return vector<LogTransaksiEntry>(logs.end() - count, logs.end());
+}
+
+LogTransaksiGame& LogTransaksiGame::operator<<(LogTransaksiEntry log) {
+    tambahLog(move(log));
+    return *this;
+}
+
+--- ./src/utils/SaveNLoad.cpp ---
+#include "include/utils/SaveNLoad.hpp"
+#include <sstream>
+#include "include/utils/FileHelper.hpp"
+#include "include/utils/NimonspoliException.hpp"
+
+using namespace std;
+
+vector<string> SaveNLoad::saveStatePemain(GameEngine& game) {
+    vector<string> hasil;
+    vector<Pemain*> listPemain = game.getListPemain();
+    for (Pemain* pemain : listPemain) {
+        if (pemain == nullptr) {
+            continue;
+        }
+        ostringstream builder;
+        //<USERNAME> <UANG> <POSISI_PETAK> <STATUS>
+        builder << pemain->getUsername() << " "
+                << pemain->getSaldo() << " "
+                << pemain->getPosisi() << " "
+                << pemain->getStatusString();
+        // <JUMLAH_KARTU_TANGAN>
+        const vector<KartuKemampuanSpesial*>& kartuDiTangan = pemain->getKartuDiTangan();
+        builder << "\n" << kartuDiTangan.size();
+        // <JENIS_KARTU_1> <NILAI_KARTU_1> <SISA_DURASI_1>
+        // .....
+        for (const KartuKemampuanSpesial* kartu : kartuDiTangan) {
+            if (kartu == nullptr) {
+                builder << "\nUNKNOWN  ";
+                continue;
+            }
+            builder << "\n" << kartu->getNamaKartu() << " "
+                    << kartu->getNilaiState() << " "
+                    << kartu->getSisaDurasiState();
+        }
+        hasil.push_back(builder.str());
+    }
+
+    return hasil;
+}
+
+vector<string> SaveNLoad::saveStateGiliran(GameEngine& game){
+    vector<string> hasil;
+    ostringstream builderUrutan;
+    vector<Pemain*> urutanGiliran = game.getUrutanGiliran();
+    for (Pemain* pemain : urutanGiliran){
+        if (pemain == nullptr) {
+            continue;
+        }
+        // <URUTAN_GILIRAN_1> <URUTAN_GILIRAN_2> … <URUTAN_GILIRAN_N>
+        builderUrutan << pemain->getUsername() << " ";
+    }
+    // <GILIRAN_AKTIF_SAAT_INI>
+    ostringstream builderAktif;
+    builderAktif << game.getGiliranAktif().getUsername();
+
+    hasil.push_back(builderUrutan.str());
+    hasil.push_back(builderAktif.str());
+
+    return hasil;
+}
+
+vector<string> SaveNLoad::saveStateProperti(GameEngine& game){
+    vector<string> hasil;
+    // <JUMLAH_PROPERTI>
+    ostringstream builderJumlahProp;
+    builderJumlahProp << game.getjumlahProperti();
+    hasil.push_back(builderJumlahProp.str());
+    // <KODE_PETAK> <JENIS> <PEMILIK> <STATUS> <FMULT> <FDUR> <N_BANGUNAN>
+    const auto& daftarProperti = game.getDaftarProperti();
+    for (const auto& entry : daftarProperti) {
+        Properti* properti = entry.second;
+        if (properti == nullptr) {
+            continue;
+        }
+        ostringstream builder;
+        builder << properti->getKode() << " "
+                << game.getJenisPropertiString(properti) << " "
+                << game.getPemilikPropertiString(properti) << " "
+                << game.getStatusPropertiString(properti) << " "
+                << game.getFestivalPropertiString(properti) << " "
+                << game.getBangunanPropertiString(properti);
+
+        hasil.push_back(builder.str());
+    }
+
+    return hasil;
+}
+
+vector<string> SaveNLoad::saveStateDeck(GameEngine& game){
+    //<JUMLAH_KARTU_DECK_KEMAMPUAN>
+    vector<string> hasil;
+    ostringstream builderJumlahDeck;
+    builderJumlahDeck << game.getJumlahKartuDeckKemampuan();
+    hasil.push_back(builderJumlahDeck.str());
+
+    //<JENIS_KARTU_1>
+    //...
+    const vector<KartuKemampuanSpesial*>& isiDeck = game.getIsiDeckKemampuan();
+    for (const KartuKemampuanSpesial* kartu : isiDeck) {
+        if (kartu == nullptr) {
+            hasil.push_back("UNKNOWN");
+            continue;
+        }
+
+        hasil.push_back(kartu->getNamaKartu());
+    }
+
+    return hasil;
+}
+
+vector<string> SaveNLoad::saveStateLog(GameEngine& game){
+    vector<string> hasil;
+
+    // <JUMLAH_ENTRI_LOG>
+    ostringstream builderJumlahLog;
+    builderJumlahLog << game.getJumlahEntriLog();
+    hasil.push_back(builderJumlahLog.str());
+
+    // <TURN> <USERNAME> <JENIS_AKSI> <DETAIL>
+    // …
+    const vector<LogTransaksiEntry>& entriLog = game.getEntriLog();
+    for (const LogTransaksiEntry& entry : entriLog) {
+        ostringstream builder;
+        builder << entry.getRonde() << " "
+                << entry.getUsername() << " "
+                << entry.getAksi() << " "
+                << entry.getDetail();
+
+        hasil.push_back(builder.str());
+    }
+
+    return hasil;
+
+}
+
+void SaveNLoad::saveGameState(GameEngine game, string filename){
+    vector<string> lines;
+
+    if (filename.size() < 4 || filename.substr(filename.size() - 4) != ".txt") {
+        filename += ".txt";
+    }
+    // <TURN_SAAT_INI> <MAX_TURN>
+    lines.push_back(to_string(game.getTurnSaatIni()) + " " + to_string(game.getMaxTurn()));
+    // <JUMLAH_PEMAIN>
+    lines.push_back(to_string(game.getJumlahPemain()));
+
+    auto tulisSection = [&lines](const vector<string>& section) {
+        for (const string& baris : section) {
+            lines.push_back(baris);
+        }
+    };
+    // <STATE_PEMAIN_1> ... <STATE_PEMAIN_N>
+    vector<string> statePemain = saveStatePemain(game);
+    tulisSection(statePemain);
+    // <URUTAN_GILIRAN_1> ... dan <GILIRAN_AKTIF_SAAT_INI>
+    vector<string> stateGiliran = saveStateGiliran(game);
+    tulisSection(stateGiliran);
+    // <STATE_PROPERTI>
+    vector<string> stateProperti = saveStateProperti(game);
+    tulisSection(stateProperti);
+    // <STATE_DECK>
+    vector<string> stateDeck = saveStateDeck(game);
+    tulisSection(stateDeck);
+    // <STATE_LOG>
+    vector<string> stateLog = saveStateLog(game);
+    tulisSection(stateLog);
+
+    FileHelper::writeAllLines(filename, lines);
+}
+
+--- ./src/views/Formatter.cpp ---
+#include "../../include/views/Formatter.hpp"
+#include "../../include/models/Pemain.hpp"
+#include "../../include/models/Petak/Petak.hpp"
+#include "../../include/models/Petak/PetakProperti.hpp"
+#include "../../include/models/Properti/Properti.hpp"
+#include "../../include/models/Properti/PropertiStreet.hpp"
+#include "../../include/models/Properti/PropertiRailroad.hpp"
+#include "../../include/models/Properti/PropertiUtility.hpp"
+#include "../../include/models/Properti/ManagerProperti.hpp"
+#include "../../include/models/ConfigData.hpp"
+#include "../../include/models/Papan.hpp"
+
+std::string Formatter::getColorCode(const std::string& warna) {
+    if (warna == "COKLAT") return "\033[38;5;94m";          // Brown
+    if (warna == "BIRU_MUDA") return "\033[38;5;51m";       // Cyan
+    if (warna == "MERAH_MUDA" || warna == "PINK") return "\033[38;5;205m";  // Magenta
+    if (warna == "ABU_ABU") return "\033[38;5;8m";           // Gray
+    if (warna == "ORANGE") return "\033[38;5;208m";          // Orange
+    if (warna == "MERAH") return "\033[31m";                 // Red
+    if (warna == "KUNING") return "\033[33m";                // Yellow
+    if (warna == "HIJAU") return "\033[32m";                 // Green
+    if (warna == "BIRU_TUA") return "\033[34m";              // Blue
+    return "\033[0m";  // Default
+}
+
+std::string Formatter::resetColor() {
+    return "\033[0m";
+}
+
+std::string Formatter::getBangunanSimbol(int level) {
+    switch(level) {
+        case 0: return "  ";
+        case 1: return "^";
+        case 2: return "^^";
+        case 3: return "^^^";
+        case 4: return "^^^^";
+        case 5: return "*";  // Hotel
+        default: return "  ";
+    }
+}
+
+const PropertiConfig* Formatter::findPropertiConfig(Properti* properti, const ConfigData& config) {
+    if (!properti) return nullptr;
+    
+    for (const auto& pair : config.getPropertiMap()) {
+        if (pair.second.getKode() == properti->getKode()) {
+            return &pair.second;
+        }
+    }
+    return nullptr;
+}
+
+void Formatter::cetakAktaProperti(Properti* properti, const ConfigData& config) {
+    if (!properti) {
+        std::cout << "Properti tidak valid.\n";
+        return;
+    }
+    
+    const PropertiConfig* propConfig = findPropertiConfig(properti, config);
+    if (!propConfig) {
+        std::cout << "Petak \"" << properti->getKode() << "\" tidak ditemukan atau bukan properti.\n";
+        return;
+    }
+    
+    std::string colorCode = getColorCode(propConfig->getWarna());
+    std::string reset = resetColor();
+    
+    std::cout << "\n" << "+================================+\n";
+    std::cout << "| AKTA KEPEMILIKAN |\n";
+    std::cout << "| " << colorCode << "[" << propConfig->getWarna() << "] " 
+              << propConfig->getNama() << " (" << propConfig->getKode() << ")" 
+              << reset << " |\n";
+    std::cout << "+================================+\n";
+    
+    if (propConfig->getJenis() == "STREET") {
+        std::cout << "| Harga Beli : M" << propConfig->getHargaLahan() << " |\n";
+        std::cout << "| Nilai Gadai : M" << propConfig->getNilaiGadai() << " |\n";
+        std::cout << "+--------------------------------+\n";
+        
+        // Tampilkan tabel sewa untuk setiap level
+        const auto& sewaTabel = propConfig->getHargaSewa();
+        std::cout << "| Sewa (unimproved) : M" << sewaTabel[0] << " |\n";
+        for (size_t i = 1; i < sewaTabel.size() - 1; i++) {
+            std::cout << "| Sewa (" << i << (i == 1 ? " rumah) " : " rumah) ")
+                      << std::string(16 - std::to_string(sewaTabel[i]).length(), ' ')
+                      << ": M" << sewaTabel[i] << " |\n";
+        }
+        std::cout << "| Sewa (hotel) : M" << sewaTabel.back() << " |\n";
+        
+        std::cout << "+--------------------------------+\n";
+        std::cout << "| Harga Rumah : M" << propConfig->getHargaBangunRumah() << " |\n";
+        std::cout << "| Harga Hotel : M" << propConfig->getHargaBangunHotel() << " |\n";
+    } else if (propConfig->getJenis() == "RAILROAD") {
+        std::cout << "| Harga Perolehan : Otomatis |\n";
+        std::cout << "| Nilai Gadai : M" << propConfig->getNilaiGadai() << " |\n";
+        std::cout << "+--------------------------------+\n";
+        std::cout << "| Sewa bergantung jumlah Railroad |\n";
+    } else if (propConfig->getJenis() == "UTILITY") {
+        std::cout << "| Harga Perolehan : Otomatis |\n";
+        std::cout << "| Nilai Gadai : M" << propConfig->getNilaiGadai() << " |\n";
+        std::cout << "+--------------------------------+\n";
+        std::cout << "| Sewa : (Total Dadu) x Faktor |\n";
+    }
+    
+    std::cout << "+================================+\n";
+    
+    // Tampilkan status
+    std::string statusStr = "BANK";
+    if (properti->getStatus() == Properti::StatusProperti::OWNED) {
+        statusStr = "OWNED (" + properti->getPemilik()->getUsername() + ")";
+    } else if (properti->getStatus() == Properti::StatusProperti::MORTGAGED) {
+        statusStr = "MORTGAGED";
+    }
+    
+    std::cout << "| Status : " << statusStr << " |\n";
+    std::cout << "+================================+\n\n";
+}
+
+void Formatter::cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
+                          int currentTurn, int maxTurn) {
+    if (papan.getTotalPetak() == 0) {
+        std::cout << "Papan belum diinisialisasi.\n";
+        return;
+    }
+    
+    // Tampilkan header papan (simplified version)
+    std::cout << "\n" << "+----------+----------+----------+----------+\n";
+    std::cout << "|" << std::setw(40) << std::setfill(' ') << "NIMONSPOLI" << "|\n";
+    std::cout << "+----------+----------+----------+----------+\n";
+    std::cout << "\n";
+    
+    // Informasi giliran
+    std::cout << "TURN " << currentTurn << " / " << maxTurn << "\n\n";
+    
+    // Tampilkan daftar pemain dan posisinya
+    for (size_t i = 0; i < daftarPemain.size(); i++) {
+        const Pemain* p = daftarPemain[i];
+        Petak* petak = const_cast<Papan&>(papan).getPetak(p->getPosisi());
+        if (petak) {
+            std::cout << "P" << (i+1) << ": " << p->getUsername() 
+                      << " - Saldo: M" << p->getSaldo() 
+                      << " - Posisi: " << petak->getKode() << "\n";
+        }
+    }
+    
+    std::cout << "\n";
+}
+
+void Formatter::cetakPropertiPemain(const Pemain* pemain, const ConfigData& config) {
+    if (!pemain) {
+        std::cout << "Pemain tidak valid.\n";
+        return;
+    }
+    
+    const auto& aset = pemain->getAsetPemain();
+    
+    if (aset.empty()) {
+        std::cout << "\nKamu belum memiliki properti apapun.\n\n";
+        return;
+    }
+    
+    std::cout << "\n=== Properti Milik: " << pemain->getUsername() << " ===\n";
+    
+    // Kelompokkan properti berdasarkan warna/jenis
+    std::map<std::string, std::vector<Properti*>> grupProperti;
+    int totalKekayaan = 0;
+    
+    for (Properti* prop : aset) {
+        if (prop) {
+            try {
+                // Cari warna properti dari config
+                for (const auto& pair : config.getPropertiMap()) {
+                    if (pair.second.getKode() == prop->getKode()) {
+                        grupProperti[pair.second.getWarna()].push_back(prop);
+                        totalKekayaan += pair.second.getHargaLahan();
+                        break;
+                    }
+                }
+            } catch (...) {
+                // Skip jika tidak ditemukan
+            }
+        }
+    }
+    
+    // Tampilkan per grup warna
+    for (const auto& grup : grupProperti) {
+        std::string colorCode = getColorCode(grup.first);
+        std::string reset = resetColor();
+        
+        std::cout << "[" << colorCode << grup.first << reset << "]\n";
+        
+        for (Properti* prop : grup.second) {
+            std::string statusStr = (prop->getStatus() == Properti::StatusProperti::MORTGAGED) 
+                                    ? " MORTGAGED [M]" : " OWNED";
+            
+            // Tampilkan info properti
+            std::cout << "- " << prop->getNamaProperti() << " (" << prop->getKode() << ")";
+            
+            // Jika ada bangunan, tampilkan
+            PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+            if (street) {
+                if (street->punyaHotel()) {
+                    std::cout << " Hotel";
+                } else if (street->getJumlahBangunan() > 0) {
+                    std::cout << " " << street->getJumlahBangunan() << " rumah";
+                }
+            }
+            
+            std::cout << statusStr << "\n";
+        }
+    }
+    
+    std::cout << "\nTotal kekayaan properti: M" << totalKekayaan << "\n\n";
+}
+
+void Formatter::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigData& config) {
+    if (!pemain) {
+        std::cout << "Pemain tidak valid.\n";
+        return;
+    }
+    
+    std::vector<Properti*> bisaDigadai;
+    std::vector<Properti*> adaBangunan;
+    const auto& aset = pemain->getAsetPemain();
+    
+    // Filter properti yang bisa digadai (status OWNED)
+    for (Properti* prop : aset) {
+        if (prop && prop->getStatus() == Properti::StatusProperti::OWNED) {
+            // Cek jika tidak ada bangunan (untuk street)
+            PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+            if (!street || street->getJumlahBangunan() == 0) {
+                bisaDigadai.push_back(prop);
+            } else {
+                // Jika ada bangunan, masukkan dalam list terpisah
+                adaBangunan.push_back(prop);
+            }
+        }
+    }
+    
+    if (bisaDigadai.empty() && adaBangunan.empty()) {
+        std::cout << "Tidak ada properti yang dapat digadaikan saat ini.\n";
+        return;
+    }
+    
+    std::cout << "\n=== Properti yang Dapat Digadaikan ===\n";
+    
+    int index = 1;
+    
+    // Tampilkan properti tanpa bangunan
+    for (Properti* prop : bisaDigadai) {
+        const PropertiConfig* propConfig = findPropertiConfig(prop, config);
+        if (propConfig) {
+            std::cout << index << ". " << prop->getNamaProperti() << " (" << prop->getKode() << ")"
+                      << " [" << propConfig->getWarna() << "] Nilai Gadai: M" << propConfig->getNilaiGadai() << "\n";
+            index++;
+        }
+    }
+    
+    // Tampilkan properti dengan bangunan dengan catatan
+    if (!adaBangunan.empty()) {
+        std::cout << "\n(Properti dengan bangunan - harus jual bangunan dulu):\n";
+        for (Properti* prop : adaBangunan) {
+            const PropertiConfig* propConfig = findPropertiConfig(prop, config);
+            if (propConfig) {
+                PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+                std::cout << index << ". " << prop->getNamaProperti() << " (" << prop->getKode() << ")"
+                          << " [" << propConfig->getWarna() << "] - " << street->getJumlahBangunan() 
+                          << " rumah\n";
+                index++;
+            }
+        }
+    }
+    
+    std::cout << "\n";
+}
+
+void Formatter::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigData& config) {
+    if (!pemain) {
+        std::cout << "Pemain tidak valid.\n";
+        return;
+    }
+    
+    std::vector<Properti*> sedangDigadai;
+    const auto& aset = pemain->getAsetPemain();
+    
+    // Filter properti yang sedang digadai (status MORTGAGED)
+    for (Properti* prop : aset) {
+        if (prop && prop->getStatus() == Properti::StatusProperti::MORTGAGED) {
+            sedangDigadai.push_back(prop);
+        }
+    }
+    
+    if (sedangDigadai.empty()) {
+        std::cout << "Tidak ada properti yang sedang digadaikan.\n";
+        return;
+    }
+    
+    std::cout << "\n=== Properti yang Sedang Digadaikan ===\n";
+    for (size_t i = 0; i < sedangDigadai.size(); i++) {
+        Properti* prop = sedangDigadai[i];
+        
+        // Cari info dari config
+        std::string warna;
+        int hargaBeli = 0;
+        for (const auto& pair : config.getPropertiMap()) {
+            if (pair.second.getKode() == prop->getKode()) {
+                warna = pair.second.getWarna();
+                hargaBeli = pair.second.getHargaLahan();
+                break;
+            }
+        }
+        
+        std::cout << (i+1) << ". " << prop->getNamaProperti() << " (" << prop->getKode() << ")"
+                  << " [" << warna << "] [M] Harga Tebus: M" << hargaBeli << "\n";
+    }
+    std::cout << "Uang kamu saat ini: M" << pemain->getSaldo() << "\n\n";
+}
+
+void Formatter::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerProperti& manager, 
+                                                  const ConfigData& config) {
+    if (!pemain) {
+        std::cout << "Pemain tidak valid.\n";
+        return;
+    }
+    
+    // Kelompokkan properti street berdasarkan color group
+    std::map<std::string, std::vector<PropertiStreet*>> grupBisaDibangun;
+    
+    const auto& aset = pemain->getAsetPemain();
+    for (Properti* prop : aset) {
+        if (prop && prop->getStatus() == Properti::StatusProperti::OWNED) {
+            PropertiStreet* street = dynamic_cast<PropertiStreet*>(prop);
+            if (street) {
+                // Cek apakah punya monopoli
+                if (manager.isMonopoly(pemain, street->getWarna())) {
+                    // Ambil warna dari config
+                    for (const auto& pair : config.getPropertiMap()) {
+                        if (pair.second.getKode() == street->getKode()) {
+                            grupBisaDibangun[pair.second.getWarna()].push_back(street);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (grupBisaDibangun.empty()) {
+        std::cout << "\nTidak ada color group yang memenuhi syarat untuk dibangun.\n";
+        std::cout << "Kamu harus memiliki seluruh petak dalam satu color group terlebih dahulu.\n\n";
+        return;
+    }
+    
+    std::cout << "\n=== Color Group yang Memenuhi Syarat ===\n";
+    int groupNum = 1;
+    
+    for (const auto& grup : grupBisaDibangun) {
+        std::string colorCode = getColorCode(grup.first);
+        std::string reset = resetColor();
+        
+        std::cout << groupNum << ". [" << colorCode << grup.first << reset << "]\n";
+        
+        for (PropertiStreet* street : grup.second) {
+            // Cari info dari config
+            int hargaBangun = 0;
+            for (const auto& pair : config.getPropertiMap()) {
+                if (pair.second.getKode() == street->getKode()) {
+                    hargaBangun = pair.second.getHargaBangunRumah();
+                    break;
+                }
+            }
+            
+            int jumlahBangunan = street->getJumlahBangunan();
+            std::string buildingStr;
+            
+            if (street->punyaHotel()) {
+                buildingStr = "Hotel";
+            } else if (jumlahBangunan > 0) {
+                buildingStr = std::to_string(jumlahBangunan) + " rumah";
+            } else {
+                buildingStr = "0 rumah";
+            }
+            
+            std::cout << "- " << street->getNamaProperti() << " (" << street->getKode() << ") : " 
+                      << buildingStr << " (Harga rumah: M" << hargaBangun << ")\n";
+        }
+        
+        groupNum++;
+    }
+    
+    std::cout << "Uang kamu saat ini : M" << pemain->getSaldo() << "\n\n";
+}
+
+--- ./src/models/PlayerActionService.cpp ---
+#include "models/PlayerActionService.hpp"
+#include "models/Properti/ManagerProperti.hpp"
+#include "models/Pemain.hpp"
+#include "models/Properti/Properti.hpp"
+#include "utils/LogTransaksiGame.hpp"
+#include "utils/NimonspoliException.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <limits>
+
+PlayerActionService::PlayerActionService( MovementController* mc, ManagerPenjara* mp, ManagerProperti* mpr, ManagerFestival* mf, LogTransaksiGame* log, std::vector<Pemain*>* pemain, int* turnIdx) : movementController(mc), managerPenjara(mp), managerProperti(mpr), managerFestival(mf), logger(log), daftarPemain(pemain), arahNormal(true), currentTurnIdx(turnIdx) {}
+
+void PlayerActionService::logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail) {
+    if (logger) {
+        logger->tambahLog(LogTransaksiEntry(0, pemain.getUsername(), aksi, detail));
+    }
+}
+
+void PlayerActionService::logFestivalActivation(Pemain& pemain, Properti& prop, int pengali, int durasi) {
+    std::string detail = prop.getKode() + ": sewa x" + std::to_string(pengali) + ", durasi " + std::to_string(durasi) + " giliran";
+    logAksi(pemain, "FESTIVAL", detail);
+}
+
+void PlayerActionService::transferMoney(Pemain* asal, Pemain* tujuan, int jumlah) {
+    if (asal) {
+        if (asal->getSaldo() < jumlah) {
+            if (Likuidasi::bisaBayarDenganLikuidasi(asal, jumlah)) {
+                Likuidasi::tampilkanPanelLikuidasi(asal, jumlah);
+                *asal -= jumlah;
+            }
+            else {
+                beriSemuaAset (asal, tujuan);
+                Kebangkrutan::declareBangkrut (asal);
+            }
+        }
+        else {
+            *asal -= jumlah;
+        }
+    } 
+    if (tujuan) *tujuan += jumlah;
+}
+
+void PlayerActionService::collectFromAllPlayers(Pemain& penerima, int jumlahPerOrang) {
+    for (Pemain* p : *daftarPemain) {
+        if (p == &penerima) continue;
+        if (p->getStatus() != StatusPemain::ACTIVE) continue;
+        try {
+            transferMoney(p, &penerima, jumlahPerOrang);
+            std::cout << p->getUsername() << " membayar M" << jumlahPerOrang << " ke " << penerima.getUsername() << ".\n";
+        } catch (UangTidakCukupException&) {
+            int sisa = p->getSaldo();
+            transferMoney(p, &penerima, sisa);
+            std::cout << p->getUsername() << " hanya bisa membayar M" << sisa << ".\n";
+        }
+    }
+}
+
+void PlayerActionService::payToAllPlayers(Pemain& pembayar, int jumlahPerOrang) {
+    for (Pemain* p : *daftarPemain) {
+        if (p == &pembayar) continue;
+        if (p->getStatus() != StatusPemain::ACTIVE) continue;
+        try {
+            transferMoney(&pembayar, p, jumlahPerOrang);
+            std::cout << pembayar.getUsername() << " membayar M" << jumlahPerOrang << " ke " << p->getUsername() << ".\n";
+        } catch (UangTidakCukupException&) {
+            throw;
+        }
+    }
+}
+
+void PlayerActionService::movePlayerRelative(Pemain& p, int n) {
+    // stub: MovementController::moveSteps() akan dipakai saat integrasi
+    int totalPetak = 40; // override oleh Papan::getTotalPetak()
+    int posiBaru = ((p.getPosisi() + n) % totalPetak + totalPetak) % totalPetak;
+    p.setPosisi(posiBaru);
+    std::cout << p.getUsername() << " bergerak ke petak " << posiBaru << ".\n";
+    logAksi(p, "GERAK", "pindah ke indeks " + std::to_string(posiBaru));
+}
+
+void PlayerActionService::teleportByInput(Pemain& p, const std::string& kodeOrIndeks) {
+    // stub: validasi kode petak di Papan akan dilakukan saat integrasi
+    std::cout << p.getUsername() << " teleport ke \"" << kodeOrIndeks << "\".\n";
+    logAksi(p, "TELEPORT", kodeOrIndeks);
+}
+
+void PlayerActionService::moveToNearestStation(Pemain& p) {
+    // stub: MovementController::findNearestStation() saat integrasi
+    std::cout << p.getUsername() << " bergerak ke stasiun terdekat.\n";
+    logAksi(p, "GERAK", "stasiun terdekat");
+}
+
+void PlayerActionService::sendToJail(Pemain& p) {
+    // stub: ManagerPenjara::masukkanKePenjara() saat integrasi
+    p.setStatus(StatusPemain::JAILED);
+    p.resetPercobaanPenjara();
+    std::cout << p.getUsername() << " masuk penjara!\n";
+    logAksi(p, "PENJARA", "masuk penjara");
+}
+
+void PlayerActionService::escapeFromJailByCard(Pemain& p) {
+    p.setStatus(StatusPemain::ACTIVE);
+    p.resetPercobaanPenjara();
+    std::cout << p.getUsername() << " bebas dari penjara (kartu).\n";
+    logAksi(p, "PENJARA", "bebas via kartu");
+}
+
+void PlayerActionService::jailOpponent(Pemain& pemain) {
+    std::cout << "Pilih pemain yang ingin dipenjara:\n";
+    std::vector<Pemain*> aktif;
+    for (Pemain* p : *daftarPemain) {
+        if (p != &pemain && p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
+    }
+    if (aktif.empty()) {
+        std::cout << "Tidak ada pemain lain yang aktif.\n";
+        return;
+    }
+    for (size_t i = 0; i < aktif.size(); ++i)
+        std::cout << "  " << (i+1) << ". " << aktif[i]->getUsername() << "\n";
+    int pilihan = 0;
+    while (pilihan < 1 || pilihan > static_cast<int>(aktif.size())) {
+        std::cout << "Pilih (1-" << aktif.size() << "): ";
+        std::cin >> pilihan;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    sendToJail(*aktif[pilihan - 1]);
+    logAksi(pemain, "KARTU", "PenjaraKanCard " + aktif[pilihan-1]->getUsername());
+}
+
+void PlayerActionService::bayarSewa(Pemain& penyewa, Properti& properti, int nilaiDadu) {
+    (void)nilaiDadu;
+}
+void PlayerActionService::beliProperti(Pemain& pemain, Properti& properti) {
+    (void)pemain; (void)properti;
+}
+void PlayerActionService::gadaiProperti(Pemain& pemain, Properti& properti) {
+    (void)pemain; (void)properti;
+}
+void PlayerActionService::bangunProperti(Pemain& pemain, PropertiStreet& properti) {
+    (void)pemain; (void)properti;
+}
+
+void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
+    std::vector<Pemain*> aktif;
+    for (Pemain* p : *daftarPemain) {
+        if (p != &pemain && p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
+    }
+    if (aktif.empty()) {
+        std::cout << "Tidak ada pemain lain yang aktif.\n";
+        return;
+    }
+
+    // pilih target pemain
+    std::cout << "Pilih pemain yang propertinya ingin dihancurkan:\n";
+    for (size_t i = 0; i < aktif.size(); ++i)
+        std::cout << "  " << (i+1) << ". " << aktif[i]->getUsername() << "\n";
+    int pilihanPemain = 0;
+    while (pilihanPemain < 1 || pilihanPemain > static_cast<int>(aktif.size())) {
+        std::cout << "Pilih (1-" << aktif.size() << "): ";
+        std::cin >> pilihanPemain;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    Pemain* target = aktif[pilihanPemain - 1];
+
+    std::vector<PropertiStreet*> punyaBangunan;
+    for (Properti* p : target->getAsetPemain()) {
+        auto* street = dynamic_cast<PropertiStreet*>(p);
+        if (street && street->getJumlahBangunan() > 0) punyaBangunan.push_back(street);
+    }
+    if (punyaBangunan.empty()) {
+        std::cout << target->getUsername() << " tidak punya properti Street dengan bangunan " << "\n";
+        return;
+    }
+
+    std::cout << "Pilih properti yang bangunannya ingin dihancurkan:\n";
+    for (size_t i = 0; i < punyaBangunan.size(); ++i) {
+        PropertiStreet* s = punyaBangunan[i];
+        std::cout << "  " << (i+1) << ". " << s->getNamaProperti() << " (" << s->getKode() << ")" << " — " << (s->punyaHotel() ? "Hotel" : std::to_string(s->getJumlahBangunan()) + " rumah") << "\n";
+    }
+
+    int pilihanProperti = 0;
+    while (pilihanProperti < 1 || pilihanProperti > static_cast<int>(punyaBangunan.size())) {
+        std::cout << "Pilih (1-" << punyaBangunan.size() << "): ";
+        std::cin >> pilihanProperti;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    PropertiStreet* dipilih = punyaBangunan[pilihanProperti - 1];
+
+    // hancurkan semua bangunan
+    int jumlahSebelum = dipilih->getJumlahBangunan();
+    while (dipilih->getJumlahBangunan() > 0) {
+        dipilih->turunkanBangunan();
+    }
+    std::cout << "[DemolitionCard] Semua bangunan (" << jumlahSebelum << (jumlahSebelum == 5 ? " — hotel" : " rumah") << ") di " << dipilih->getNamaProperti() << " milik " << target->getUsername() << " telah dihancurkan.\n";
+    logAksi(pemain, "KARTU", "DemolitionCard " + dipilih->getKode() + " milik " + target->getUsername());
+}
+
+void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
+    int posiSaya = pemain.getPosisi();
+    static constexpr int TOTAL_PETAK = 40;
+    std::vector<Pemain*> kandidat;
+    for (Pemain* p : *daftarPemain) {
+        if (p == &pemain) continue;
+        if (p->getStatus() != StatusPemain::ACTIVE) continue; // skip JAILED
+        int jarak = (p->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        if (jarak > 0) kandidat.push_back(p);
+    }
+    if (kandidat.empty()) {
+        std::cout << "Tidak ada pemain aktif di depan kamu.\n";
+        return;
+    }
+
+    // urutkan dari yang terdekat
+    std::sort(kandidat.begin(), kandidat.end(), [&](Pemain* a, Pemain* b) {
+        int ja = (a->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        int jb = (b->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        return ja < jb;
+    });
+    std::cout << "Pilih pemain yang ingin ditarik ke posisi kamu (petak " << posiSaya << "):\n";
+    for (size_t i = 0; i < kandidat.size(); ++i) {
+        int jarak = (kandidat[i]->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
+        std::cout << "  " << (i+1) << ". " << kandidat[i]->getUsername() << " (petak " << kandidat[i]->getPosisi() << ", jarak " << jarak << ")\n";
+    }
+    int pilihan = 0;
+    while (pilihan < 1 || pilihan > static_cast<int>(kandidat.size())) {
+        std::cout << "Pilih (1-" << kandidat.size() << "): ";
+        std::cin >> pilihan;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    Pemain* target = kandidat[pilihan - 1];
+    std::cout << target->getUsername() << " ditarik ke posisi " << pemain.getUsername() << " (petak " << posiSaya << ").\n";
+    target->setPosisi(posiSaya);
+    // TODO (integrasi): papan->getPetak(posiSaya)->onLanded(*target, *this)
+    logAksi(pemain, "KARTU", "LassoCard : tarik " + target->getUsername() + " ke petak " + std::to_string(posiSaya));
+}
+
+void PlayerActionService::rotateAllHandCards(Pemain& pemain) {
+    std::vector<Pemain*> aktif;
+    for (Pemain* p : *daftarPemain) {
+        if (p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
+    }
+    if (aktif.size() < 2) {
+        std::cout << "Tidak cukup pemain untuk rotasi kartu.\n";
+        return;
+    }
+    // simpan hand pemain terakhir sebagai buffer
+    std::vector<KartuKemampuanSpesial*> buffer = aktif.back()->getKartuDiTangan();
+    // proses rotasi: hand[i] mendapat hand[i-1], dari belakang ke depan
+    for (int i = static_cast<int>(aktif.size()) - 1; i > 0; --i) {
+        aktif[i]->setKartuDiTangan(aktif[i - 1]->getKartuDiTangan());
+    }
+    aktif[0]->setKartuDiTangan(buffer);
+    std::cout << "[RotasiKartuCard] Kartu tangan semua pemain telah dirotasi.\n";
+    logAksi(pemain, "KARTU", "RotasiKartuCard — rotasi " + std::to_string(aktif.size()) + " pemain");
+}
+
+void PlayerActionService::reverseTurnOrder(Pemain& pemain) {
+    arahNormal = !arahNormal;
+    std::cout << "[ReverseCard] Urutan giliran kini " << (arahNormal ? "normal (searah jarum jam).\n" : "terbalik!\n");
+    logAksi(pemain, "KARTU", arahNormal ? "ReverseCard (normal)" : "ReverseCard (terbalik)");
+}
+
+void PlayerActionService::beriSemuaAset (Pemain* asal, Pemain *tujuan) {
+    if (tujuan) {
+        *tujuan += asal->getSaldo();
+        for (auto aset : asal->getAsetPemain()) {
+            aset->setPemilik(tujuan);
+        }
+    }
+    else {
+        for (auto aset : asal->getAsetPemain()) {
+            aset->setPemilik(nullptr);
+            aset->setStatus(Properti::StatusProperti::BANK);
+        }
+    }
+} // nullptr = bank
+
+--- ./src/models/Papan.cpp ---
+#include "models/Papan.hpp"
+
+Papan::Papan(ManagerProperti& manager, ConfigData& configData){
+    int n = configData.getPropertiMap().size() + configData.getAksiMap().size();
+
+    for(int i = 1; i <= n; i++){
+        // PROPERTY (Street, Railroad, Utility)
+        const auto& propertiMap = configData.getPropertiMap();
+        auto properti = propertiMap.find(i);
+        if(properti != propertiMap.end()){ //id merupakan properti
+            Properti* p = manager.getProperti(properti->second.getId());
+            daftarPetak.push_back(
+                new PetakProperti(
+                    properti->second.getId(),
+                    properti->second.getKode(),
+                    properti->second.getNama(),
+                    p
+                )
+            );
+        }
+
+        // Aksi
+        const auto& aksiMap = configData.getAksiMap();
+        auto aksi = aksiMap.find(i);
+        if(aksi != aksiMap.end()){ //id merupakan aksi
+            if(aksi->second.getJenis() == "KARTU"){
+                daftarPetak.push_back(
+                    new PetakKartu(
+                        aksi->second.getId(),
+                        aksi->second.getKode(),
+                        aksi->second.getNama()
+                    )
+                );
+            }
+        
+            else if(aksi->second.getJenis() == "PAJAK"){
+                daftarPetak.push_back(
+                    new PetakPajak(
+                        aksi->second.getId(),
+                        aksi->second.getKode(),
+                        aksi->second.getNama()
+                    )
+                );
+            }
+
+            else if(aksi->second.getJenis() == "FESTIVAL"){
+                daftarPetak.push_back(
+                    new PetakFestival(
+                        aksi->second.getId(),
+                        aksi->second.getKode(),
+                        aksi->second.getNama()
+                    )
+                );
+            }
+
+            // SPESIAL 
+            else if(aksi->second.getJenis() == "SPESIAL"){
+                if(aksi->second.getKode() == "GO"){
+                    daftarPetak.push_back(
+                        new PetakMulai(
+                            aksi->second.getId(),
+                            aksi->second.getKode(),
+                            aksi->second.getNama()
+                        )
+                    );
+                }
+                else if(aksi->second.getKode() == "PEN"){
+                    daftarPetak.push_back(
+                        new PetakPenjara(
+                            aksi->second.getId(),
+                            aksi->second.getKode(),
+                            aksi->second.getNama()
+                        )
+                    );
+                }
+                else if(aksi->second.getKode() == "PPJ"){
+                    daftarPetak.push_back(
+                        new PetakPergiKePenjara(
+                            aksi->second.getId(),
+                            aksi->second.getKode(),
+                            aksi->second.getNama()
+                        )
+                    );
+                }
+                else if(aksi->second.getKode() == "BBP"){
+                    daftarPetak.push_back(
+                        new PetakBebasParkir(
+                            aksi->second.getId(),
+                            aksi->second.getKode(),
+                            aksi->second.getNama()
+                        )
+                    );
+                }
+            }
+        }
+    }
+}
+
+Petak* Papan::getPetak(int indeks){
+    if(indeks < 1 || indeks > getTotalPetak()) return nullptr;
+    return daftarPetak[indeks - 1];
+}
+
+Petak* Papan::getPetak(const std::string& kode){
+    for(Petak* petak : daftarPetak){
+        if(petak->getKode() == kode){
+            return petak;
+        }
+    }
+    return nullptr;
+}
+
+// Mencari petak dengan kode tertentu yang terdekat dari pemain pada indeks tertentu
+Petak* Papan::findNearestByKode(const std::string& kode, int indeks){
+    for(int i = 0; i < getTotalPetak(); i++){
+        int idx = (indeks - 1 + i) % getTotalPetak();
+
+        if(daftarPetak.at(idx)->getKode() == kode){
+            return daftarPetak.at(idx);
+        }
+    }
+
+    // Kalau tidak ditemukan sama sekali : error / exception mungkin
+    return nullptr;
+}
+
+int Papan::getTotalPetak() const {
+    return daftarPetak.size();
+}
+
+Papan::~Papan(){
+    for(auto p : daftarPetak){
+        delete p;
+    }
+}
+--- ./src/models/ConfigData.cpp ---
+#include "models/ConfigData.hpp"
+#include <utility>
+
+using namespace std;
+
+PropertiConfig::PropertiConfig()
+    : id(0), kode(""), nama(""), jenis(""), warna(""),
+      hargaLahan(0), nilaiGadai(0), hargaBangunRumah(0),
+      hargaBangunHotel(0), hargaSewa(6, 0) {}
+
+PropertiConfig::PropertiConfig(int id, string kode, string nama, string jenis, string warna, int hargaLahan,
+                               int nilaiGadai, int hargaBangunRumah, int hargaBangunHotel, vector<int> hargaSewa)
+    : id(id), kode(move(kode)), nama(move(nama)), jenis(move(jenis)), warna(move(warna)),
+      hargaLahan(hargaLahan), nilaiGadai(nilaiGadai), hargaBangunRumah(hargaBangunRumah),
+      hargaBangunHotel(hargaBangunHotel), hargaSewa(move(hargaSewa)) {}
+
+int PropertiConfig::getId() const { return id; }
+const string &PropertiConfig::getKode() const { return kode; }
+const string &PropertiConfig::getNama() const { return nama; }
+const string &PropertiConfig::getJenis() const { return jenis; }
+const string &PropertiConfig::getWarna() const { return warna; }
+int PropertiConfig::getHargaLahan() const { return hargaLahan; }
+int PropertiConfig::getNilaiGadai() const { return nilaiGadai; }
+int PropertiConfig::getHargaBangunRumah() const { return hargaBangunRumah; }
+int PropertiConfig::getHargaBangunHotel() const { return hargaBangunHotel; }
+const vector<int> &PropertiConfig::getHargaSewa() const { return hargaSewa; }
+int PropertiConfig::getHargaSewa(int level) const { return hargaSewa.at(level); }
+
+ConfigData::ConfigData(int pphFlat, int pphPersen, int pbmFlat, int gajiGo, int dendaPenjara,
+                       int maxTurn, int uangAwal, map<int, PropertiConfig> propertiMap, map<int, AksiConfig> aksiMap,
+                       map<int, int> sewaRailroad, map<int, int> pengaliUtility)
+    : propertiMap(move(propertiMap)), aksiMap(move(aksiMap)), hargaSewaRailroad(move(sewaRailroad)),
+      pengaliUtility(move(pengaliUtility)), pphFlat(pphFlat), pphPersen(pphPersen), pbmFlat(pbmFlat),
+      gajiGo(gajiGo), dendaPenjara(dendaPenjara), maxTurn(maxTurn), uangAwalPemain(uangAwal) {}
+
+const map<int, PropertiConfig> &ConfigData::getPropertiMap() const { return propertiMap; }
+const PropertiConfig &ConfigData::getPropertiMap(const int &kodeProperti) const { return propertiMap.at(kodeProperti); }
+const map<int, AksiConfig> &ConfigData::getAksiMap() const{ return aksiMap; }
+const AksiConfig &ConfigData::getAksiMap(const int &idAksi) const { return aksiMap.at(idAksi); }
+const map<int, int> &ConfigData::getHargaSewaRailroad() const { return hargaSewaRailroad; }
+int ConfigData::getHargaSewaRailroad(int jumlahRailroad) const { return hargaSewaRailroad.at(jumlahRailroad); }
+const map<int, int> &ConfigData::getPengaliUtility() const { return pengaliUtility; }
+int ConfigData::getPengaliUtility(int jumlahUtility) const { return pengaliUtility.at(jumlahUtility); }
+int ConfigData::getPphFlat() const { return pphFlat; }
+int ConfigData::getPphPersen() const { return pphPersen; }
+int ConfigData::getPbmFlat() const { return pbmFlat; }
+int ConfigData::getGajiGo() const { return gajiGo; }
+int ConfigData::getDendaPenjara() const { return dendaPenjara; }
+int ConfigData::getMaxTurn() const { return maxTurn; }
+int ConfigData::getUangAwalPemain() const { return uangAwalPemain; }
+
+AksiConfig::AksiConfig(int id, std::string kode, std::string nama, std::string jenis, std::string warna)
+  : id(id), kode(move(kode)), nama(move(nama)), jenis(move(jenis)), warna(move(warna)) {}
+
+int AksiConfig::getId() const { return id; }
+const std::string &AksiConfig::getKode() const { return kode; }
+const std::string &AksiConfig::getNama() const { return nama; }
+const std::string &AksiConfig::getJenis() const { return jenis; }
+const std::string &AksiConfig::getWarna() const { return warna; }
+--- ./src/models/Dadu.cpp ---
+#include "models/Dadu.hpp"
+#include <random> 
+
+Dadu::Dadu() : d1(1), d2(1),
+    rng(std::random_device{}()) {} //seed sekali di constructor
+
+void Dadu::rollRandom() {
+    std::uniform_int_distribution<int> dist(1, 6); //1-6 inklusif
+    d1 = dist(rng);
+    d2 = dist(rng);
+}
+ 
+void Dadu::rollManual(int v1, int v2){
+    d1 = v1;
+    d2 = v2;
+}
+--- ./src/models/Pemain.cpp ---
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include "utils/NimonspoliException.hpp"
+#include <iostream>
+#include <limits>
+#include <cassert>
+
+using namespace std;
+
+Pemain::Pemain(const std::string& username, int saldoAwal) : username(username), posisi(0), saldo(saldoAwal), status(StatusPemain::ACTIVE), shieldAktif(false), discountAktif(false), persenDiskon(0), sudahPakaiSkill(false), percobaanKeluarPenjara(0) {};
+Pemain::~Pemain() {};
+
+// operator overload 
+Pemain& Pemain::operator+=(int amount){
+    saldo += amount;
+    return *this;
+}
+Pemain& Pemain::operator-=(int amount){
+    if (saldo < amount) throw UangTidakCukupException();
+    
+    saldo -= amount;
+    return *this;
+}
+bool Pemain::operator>(const Pemain& other) const{
+    //  Pemenang adalah pemain dengan uang terbanyak. 
+    //  Jika seri, pemain yang memiliki jumlah petak properti terbanyak yang menjadi pemenang. 
+    //  Jika seri, pemain yang memiliki jumlah kartu terbanyak yang menjadi pemenang. 
+    //  Jika seri, semua pemain yang masih seri menjadi pemenang.
+    if (saldo != other.saldo) return saldo > other.saldo;
+    if (asetPemain.size() != other.asetPemain.size()) return asetPemain.size() > other.asetPemain.size();
+    if (kartuDiTangan.size() != other.kartuDiTangan.size()) return kartuDiTangan.size() > other.kartuDiTangan.size();
+    return false;
+}
+bool Pemain::operator<(const Pemain& other) const{ 
+    if (saldo != other.saldo) return saldo < other.saldo;
+    if (asetPemain.size() != other.asetPemain.size()) return asetPemain.size() < other.asetPemain.size();
+    if (kartuDiTangan.size() != other.kartuDiTangan.size()) return kartuDiTangan.size() < other.kartuDiTangan.size();
+    return false;
+}
+
+// kartu management 
+void Pemain::tambahKartu(KartuKemampuanSpesial* kartuBaru, DeckKartu<KartuKemampuanSpesial>& deckSkill){
+    kartuDiTangan.push_back(kartuBaru);
+    if (kartuDiTangan.size() <= 3) {
+        cout << username << " mendapatkan kartu: " << kartuBaru->getDeskripsi() << "\n";
+        return;
+    }
+    cout << "PERINGATAN: Kamu sudah memiliki 3 kartu di tangan (maksimal 3).\n";
+    cout << "Kamu wajib membuang 1 kartu.\n";
+    cout << "Daftar Kartu Kemampuan Anda:\n";
+    for (size_t i = 0; i < kartuDiTangan.size(); ++i) {
+        cout << (i + 1) << ". " << kartuDiTangan[i]->getDeskripsi() << "\n";
+    }
+    int pilihan = -1;
+    while (true) {
+        cout << "Pilih nomor kartu yang ingin dibuang (1-" << kartuDiTangan.size() << "): ";
+        if (cin >> pilihan && pilihan >= 1 && pilihan <= static_cast<int>(kartuDiTangan.size())) {
+            break;
+        }
+        cout << "Input tidak valid. Coba lagi.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    KartuKemampuanSpesial* kartuDibuang = kartuDiTangan[pilihan - 1];
+    deckSkill.buangKartu(kartuDibuang);
+    kartuDiTangan.erase(kartuDiTangan.begin() + (pilihan - 1));
+
+    cout << kartuDibuang->getNamaKartu() << " telah dibuang. Sekarang kamu memiliki " << kartuDiTangan.size() << " kartu.\n";
+} 
+
+void Pemain::buangKartu(int index, DeckKartu<KartuKemampuanSpesial>& deckSkill){
+    assert(index >= 0 && index < static_cast<int>(kartuDiTangan.size()));
+    KartuKemampuanSpesial* kartu = kartuDiTangan[index];
+    deckSkill.buangKartu(kartu);
+    kartuDiTangan.erase(kartuDiTangan.begin() + index);
+}
+
+void Pemain::gunakanKartu(int index, PlayerActionService& svc, DeckKartu<KartuKemampuanSpesial>& deckSkill, bool bolehPakaiSkill){
+    assert(index >= 0 && index < static_cast<int>(kartuDiTangan.size()));
+    if (!bolehPakaiSkill) {
+        cout << "Kartu kemampuan hanya bisa digunakan sebelum melempar dadu.\n";
+        return;
+    }
+    if (sudahPakaiSkill) {
+        cout << "Kamu sudah menggunakan kartu kemampuan pada giliran ini!\n";
+        return;
+    }
+    KartuKemampuanSpesial* kartu = kartuDiTangan[index];
+    kartu->gunakan(*this, svc);
+    sudahPakaiSkill = true;
+    deckSkill.buangKartu(kartu);
+    kartuDiTangan.erase(kartuDiTangan.begin() + index);
+    cout << kartu->getNamaKartu() << " telah digunakan dan dipindahkan ke tumpukan pembuangan.\n";
+}
+
+// properti management 
+void Pemain::tambahAset(Properti* p){
+    asetPemain.push_back(p);
+}
+void Pemain::hapusAset(Properti* p){
+    for (auto it = asetPemain.begin(); it != asetPemain.end(); it++){
+        if (*it == p){
+            asetPemain.erase(it);
+            return;
+        }
+    }
+}
+string Pemain::getStatusString() {
+    switch (status) {
+    case StatusPemain::ACTIVE:
+        return "ACTIVE";
+    case StatusPemain::JAILED:
+        return "JAILED";
+    case StatusPemain::BANKRUPT:
+        return "BANKRUPT";
+    default:
+        return "ACTIVE";
+    }
+}
+--- ./src/models/ManagerPenjara.cpp ---
+#include "../../include/models/ManagerPenjara.hpp"
+
+// ======================== ManagerPenjara ========================
+void ManagerPenjara::tryEscapeByDouble(Pemain &p, Dadu& d, PlayerActionService actionService) {
+    if (p.getPercobaanKeluarPenjara() >= 3) {
+        paksaBayar(p, actionService);
+    }
+    else {
+        d.rollRandom();
+        if (d.isDouble()) {
+            p.setStatus(StatusPemain::ACTIVE);
+        }
+    }
+}
+
+void ManagerPenjara::escapeByFine(Pemain &p, PlayerActionService actionService) {
+    actionService.transferMoney(&p, nullptr, actionService.getConfig()->getDendaPenjara());
+    std::cout << p.getUsername() << " membayar " << actionService.getConfig()->getDendaPenjara() << " untuk keluar dari penjara!\n";
+    p.setStatus(StatusPemain::ACTIVE);
+}
+
+void ManagerPenjara::paksaBayar(Pemain &p, PlayerActionService actionService) {
+    std::cout << p.getUsername() << " dipaksa bayar karena sudah berada di penjara selama 3 turn!\n";
+    escapeByFine(p, actionService);
+}
+
+--- ./src/models/Petak/PetakPajak.cpp ---
+#include "../../../include/models/Petak/PetakPajak.hpp"
+#include "../../../include/models/Pemain.hpp"
+#include "../../../include/models/PlayerActionService.hpp"
+#include "../../../include/core/BangkrutDanEndGame.hpp"
+
+PetakPajak::PetakPajak(int indeks, const std::string& kode, const std::string& nama, ConfigData* konfigurasi)
+    : PetakAksi(indeks, kode, nama), config(konfigurasi) {
+}
+
+// Override method: onLanded
+void PetakPajak::onLanded(Pemain& pemain, PlayerActionService& svc) {
+    if (jenis == JenisPajak::PAJAK_BARANG_MEWAH) {
+        svc.transferMoney(&pemain, nullptr, config->getPbmFlat());
+    }
+    else {
+        cout << "Kamu mendarat di Pajak Penghasilan (PPH)!\n";
+        cout << "Pilih opsi pembayaran pajak: \n";
+        cout << "1. Bayar flat M" << config->getPphFlat() << " \n";
+        cout << "2. Bayar " << config->getPphPersen() << "\% dari total kekayaan\n";
+        cout << "(Pilih sebelum menghitung kekayaan!\n)";
+
+        string input;
+        while (true) {
+            cout << "Pilihan(1/2): ";
+            getline(cin, input);
+            if (input != "1" && input != "2") {
+                cout << "Masukan tidak valid\n";
+            }
+        }
+
+        if (input == "1") {
+            svc.transferMoney (&pemain, nullptr, config->getPphFlat());
+        }
+        else {
+            int harusDibayar = 1.0*Likuidasi::totalLikuidasiSeluruhAsetJual(&pemain)*config->getPphPersen() / 100;
+            svc.transferMoney (&pemain, nullptr, harusDibayar);
+        }
+    }
+}
+
+--- ./src/models/Petak/PetakAksi.cpp ---
+#include "models/Petak/PetakAksi.hpp"
+
+PetakAksi::PetakAksi(int indeks, const std::string& kode, const std::string& nama):
+    Petak(indeks, kode, nama){}
+
+--- ./src/models/Petak/PetakFestival.cpp ---
+#include "models/Petak/PetakFestival.hpp"
+#include "models/Properti/Properti.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include <iostream>
+#include <limits>
+
+void ManagerFestival::applyFestival(Properti* properti) {
+    auto it = efekAktif.find(properti);
+    if (it == efekAktif.end()) {
+        efekAktif[properti] = {2, DURASI_DEFAULT};
+        std::cout << "Efek festival aktif pada " << properti->getNamaProperti() << ": sewa x2 selama 3 giliran.\n";
+    } else {
+        auto& [pengali, durasi] = it->second;
+        durasi = DURASI_DEFAULT;
+        if (pengali < PENGALI_MAKS) {
+            pengali *= 2;
+        }
+        std::cout << "Efek festival diperbarui pada " << properti->getNamaProperti() << ": sewa x" << pengali << " selama 3 giliran.\n";
+    }
+}
+
+void ManagerFestival::updateDurasi(Pemain* pemilik) {
+    for (auto it = efekAktif.begin(); it != efekAktif.end(); ) {
+        Properti* prop = it->first;
+        if (prop->getPemilik() == pemilik) {
+            it->second.second--;
+            if (it->second.second <= 0) {
+                it = efekAktif.erase(it);
+            } else {
+                ++it;
+            }
+        } else {
+            ++it;
+        }
+    }
+}
+
+int ManagerFestival::getPengali(Properti* properti) const {
+    auto it = efekAktif.find(properti);
+    return (it == efekAktif.end()) ? 1 : it->second.first;
+}
+
+int ManagerFestival::getSisaDurasi(Properti* properti) const {
+    auto it = efekAktif.find(properti);
+    return (it == efekAktif.end()) ? 0 : it->second.second;
+}
+
+bool ManagerFestival::isAktif(Properti* properti) const {
+    auto it = efekAktif.find(properti);
+    return it != efekAktif.end() && it->second.second > 0;
+}
+
+std::string ManagerFestival::getFestivalString(Properti* properti) const {
+    return std::to_string(getPengali(properti)) + " " + std::to_string(getSisaDurasi(properti));
+}
+
+PetakFestival::PetakFestival(int indeks, const std::string& kode, const std::string& nama, ManagerFestival* mgr) : PetakAksi(indeks, kode, nama), managerFestival(mgr) {}
+
+void PetakFestival::onLanded(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "\nKamu mendarat di petak Festival!\n";
+    const auto& aset = pemain.getAsetPemain();
+    if (aset.empty()) {
+        std::cout << "Kamu tidak memiliki properti.\n";
+        return;
+    }
+    std::cout << "Daftar properti milikmu:\n";
+    for (size_t i = 0; i < aset.size(); ++i) {
+        Properti* p = aset[i];
+        std::cout << (i + 1) << ". " << p->getNamaProperti() << " (" << p->getKode() << ")";
+        if (managerFestival->isAktif(p)) {
+            std::cout << " [festival x" << managerFestival->getPengali(p) << ", sisa " << managerFestival->getSisaDurasi(p) << " giliran]";
+        }
+        std::cout << "\n";
+    }
+    int pilihan = -1;
+    while (true) {
+        std::cout << "Pilih properti (1-" << aset.size() << "): ";
+        if (std::cin >> pilihan && pilihan >= 1 && pilihan <= static_cast<int>(aset.size())) {
+            break;
+        }
+        std::cout << "Input tidak valid. Coba lagi.\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    Properti* target = aset[pilihan - 1];
+    managerFestival->applyFestival(target);
+    std::string detail = target->getKode() + " festival x" + std::to_string(managerFestival->getPengali(target)) + " durasi " + std::to_string(managerFestival->getSisaDurasi(target));
+    svc.logAksi(pemain, "FESTIVAL", detail);
+}
+--- ./src/models/Petak/PetakKartu.cpp ---
+#include "models/Petak/PetakKartu.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include "utils/LogTransaksiGame.hpp"
+#include <iostream>
+
+PetakKartu::PetakKartu(int indeks, const std::string& kode, const std::string& nama, JenisKartu jenis, DeckKartu<Kartu>* deck) : PetakAksi(indeks, kode, nama), jenis(jenis), deck(deck) {}
+
+void PetakKartu::onLanded(Pemain& pemain, PlayerActionService& svc) {
+    if (jenis == JenisKartu::KESEMPATAN) {
+        std::cout << "\nKamu mendarat di Petak Kesempatan!\n";
+    } else {
+        std::cout << "\nKamu mendarat di Petak Dana Umum!\n";
+    }
+    std::cout << "Mengambil kartu...\n";
+
+    Kartu* kartu = deck->ambilKartu();
+    std::cout << "Kartu: \"" << kartu->getNamaKartu() << "\"\n";
+    kartu->jalankanEfek(pemain, svc);
+
+    deck->buangKartu(kartu);
+
+    std::string jenisStr = (jenis == JenisKartu::KESEMPATAN) ? "KESEMPATAN" : "DANA_UMUM";
+    svc.logAksi(pemain, "KARTU", jenisStr + " | " + kartu->getNamaKartu());
+}
+--- ./src/models/Petak/Petak.cpp ---
+#include "models/Petak/Petak.hpp"
+
+Petak::Petak(int indeks, const std::string& kode, const std::string& nama) : indeks(indeks), kode(kode), nama(nama){}
+
+int Petak::getIndeks() const{
+    return indeks;
+}
+
+const std::string& Petak::getKode() const{
+    return kode;
+}
+
+const std::string& Petak::getNama() const{
+    return nama;
+}
+
+std::string Petak::getDisplayInfo() const{
+    return std::to_string(indeks) + " " + kode + " " + nama; 
+}
+--- ./src/models/Petak/PetakProperti.cpp ---
+#include "models/Petak/PetakProperti.hpp"
+
+PetakProperti::PetakProperti(int indeks, const std::string& kode, const std::string& nama, Properti* properti) : 
+    Petak(indeks, kode, nama), properti(properti){}
+--- ./src/models/Petak/PetakSpesial.cpp ---
+#include "models/Petak/PetakSpesial.hpp"
+
+// ======================== PetakSpesial ========================
+PetakSpesial::PetakSpesial(int indeks, const std::string& kode, const std::string& nama):
+    PetakAksi(indeks, kode, nama){}
+
+// ======================== PetakMulai ========================
+PetakMulai::PetakMulai(int indeks, const std::string& kode, const std::string& nama):
+    PetakSpesial(indeks, kode, nama){}
+
+void PetakMulai::onLanded(Pemain &p, PlayerActionService actionService) {
+    actionService.transferMoney(nullptr, &p, actionService.getConfig()->getGajiGo());
+}
+
+// ======================== PetakPenjara ========================
+PetakPenjara::PetakPenjara(int indeks, const std::string& kode, const std::string& nama):
+    PetakSpesial(indeks, kode, nama), manager_penjara(nullptr){}
+
+void PetakPenjara::onLanded(Pemain &p, PlayerActionService actionService) {
+    // ga ngapa2in lanjut aja biasa
+}
+
+// ======================== PetakPergiPenjara ========================
+PetakPergiPenjara::PetakPergiPenjara(int indeks, const std::string& kode, const std::string& nama):
+    PetakSpesial(indeks, kode, nama){}
+
+void PetakPergiPenjara::onLanded(Pemain &p, PlayerActionService actionService) {
+    masukkanKePenjara(p, actionService);
+}
+
+void PetakPergiPenjara::masukkanKePenjara(Pemain &p, PlayerActionService actionService) {
+    actionService.sendToJail(p);
+}
+
+// ======================== PetakBebasParkir ========================
+PetakBebasParkir::PetakBebasParkir(int indeks, const std::string& kode, const std::string& nama):
+    PetakSpesial(indeks, kode, nama){}
+
+void PetakBebasParkir::onLanded(Pemain &p, PlayerActionService actionService) {
+    // ga ngapa2in juga
+}
+--- ./src/models/Kartu/KartuKesempatan.cpp ---
+#include "models/Kartu/KartuKesempatan.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include <iostream>
+
+void KartuPergiKeStasiunTerdekat::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "Kartu: \"Pergi ke stasiun terdekat.\"\n";
+    svc.moveToNearestStation(pemain);
+}
+
+void KartuMundurTigaPetak::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "Kartu: \"Mundur 3 petak.\"\n";
+    // negatif = mundur
+    svc.movePlayerRelative(pemain, -3);
+}
+
+void KartuMasukPenjara::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "Kartu: \"Masuk Penjara.\"\n";
+    svc.sendToJail(pemain);
+}
+
+void KartuBebasPenjara::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    if (pemain.getStatus() == StatusPemain::JAILED) {
+        std::cout << "Kartu: \"Bebas dari Penjara.\"\n";
+        std::cout << "Kamu dibebaskan dari penjara!\n";
+        svc.escapeFromJailByCard(pemain);
+    } else {
+        std::cout << "Kartu: \"Bebas dari Penjara.\" (disimpan untuk digunakan nanti)\n";
+        // kartu akan dikembalikan ke tangan
+    }
+    (void)svc;
+}
+--- ./src/models/Kartu/Kartu.cpp ---
+#include "models/Kartu/Kartu.hpp"
+--- ./src/models/Kartu/KartuKemampuanSpesial.cpp ---
+#include "models/Kartu/KartuKemampuanSpesial.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include <iostream>
+#include <string>
+#include <limits>
+
+MoveCard::MoveCard(int langkah) : KartuKemampuanSpesial("MoveCard"), langkah(langkah) {}
+void MoveCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[MoveCard] Maju " << langkah << " petak.\n";
+    svc.movePlayerRelative(pemain, langkah);
+}
+std::string MoveCard::getDeskripsi() const {
+    return "MoveCard - Maju " + std::to_string(langkah) + " Petak";
+}
+std::string MoveCard::getNilaiState() const {
+    return std::to_string(langkah);
+}
+
+DiscountCard::DiscountCard(int persen) : KartuKemampuanSpesial("DiscountCard"), persenDiskon(persen), sisaDurasi(0) {}
+void DiscountCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[DiscountCard] Diskon " << persenDiskon << "% aktif. Berlaku selama 1 giliran ini.\n";
+    pemain.setDiscountAktif(true, persenDiskon);
+    sisaDurasi = 1;
+    (void)svc;
+}
+std::string DiscountCard::getDeskripsi() const {
+    return "DiscountCard - Diskon " + std::to_string(persenDiskon) + "% selama 1 giliran";
+}
+std::string DiscountCard::getNilaiState() const {
+    return std::to_string(persenDiskon);
+}
+std::string DiscountCard::getSisaDurasiState() const {
+    return std::to_string(sisaDurasi);
+}
+
+ShieldCard::ShieldCard() : KartuKemampuanSpesial("ShieldCard") {}
+void ShieldCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[ShieldCard] Perisai aktif! Kebal dari semua tagihan " << "dan sanksi selama giliran ini.\n";
+    pemain.setShieldAktif(true);
+    (void)svc;
+}
+std::string ShieldCard::getDeskripsi() const {
+    return "ShieldCard - Kebal tagihan/sanksi selama 1 giliran";
+}
+
+TeleportCard::TeleportCard() : KartuKemampuanSpesial("TeleportCard") {}
+void TeleportCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[TeleportCard] Masukkan kode petak tujuan: ";
+    std::string input;
+    std::cin >> input;
+    // validasi dan teleport dilakukan di PlayerActionService
+    svc.teleportByInput(pemain, input);
+}
+std::string TeleportCard::getDeskripsi() const {
+    return "TeleportCard - Pindah ke petak manapun";
+}
+
+LassoCard::LassoCard() : KartuKemampuanSpesial("LassoCard") {}
+void LassoCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[LassoCard] Menarik pemain yang berada paling dekat " << "di depan kamu ke posisi kamu.\n";
+    // svc mencari pemain aktif yang terdekat
+    svc.pullPlayerAhead(pemain);
+}
+std::string LassoCard::getDeskripsi() const {
+    return "LassoCard - Menarik lawan di depan ke posisi kamu";
+}
+
+DemolitionCard::DemolitionCard() : KartuKemampuanSpesial("DemolitionCard") {}
+void DemolitionCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[DemolitionCard] Hancurkan semua bangunan milik pemain lawan.\n";
+    // svc menampilkan daftar pemain dan properti bergambar, lalu dieksekusi
+    svc.demolishOpponentProperty(pemain);
+}
+std::string DemolitionCard::getDeskripsi() const {
+    return "DemolitionCard - Hancurkan semua bangunan properti lawan";
+}
+
+
+RotasiKartuCard::RotasiKartuCard() : KartuKemampuanSpesial("RotasiKartuCard") {}
+void RotasiKartuCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[RotasiKartuCard] Semua kartu di tangan setiap pemain " << "berputar ke pemain berikutnya!\n";
+    svc.rotateAllHandCards(pemain);
+}
+std::string RotasiKartuCard::getDeskripsi() const {
+    return "RotasiKartuCard - Kartu tangan semua pemain berputar searah giliran";
+}
+
+ReverseCard::ReverseCard() : KartuKemampuanSpesial("ReverseCard") {}
+void ReverseCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[ReverseCard] Arah urutan giliran dibalik!\n";
+    // di svc, TurnController::reverseOrder()
+    svc.reverseTurnOrder(pemain);
+}
+std::string ReverseCard::getDeskripsi() const {
+    return "ReverseCard - Membalik arah urutan giliran bermain";
+}
+
+PenjaraKanCard::PenjaraKanCard() : KartuKemampuanSpesial("PenjaraKanCard") {}
+void PenjaraKanCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "[PenjaraKanCard] Pilih pemain lawan yang ingin dipenjara.\n";
+    svc.jailOpponent(pemain);
+}
+std::string PenjaraKanCard::getDeskripsi() const {
+    return "PenjaraKanCard - Kirim pemain lawan pilihanmu ke penjara";
+}
+
+--- ./src/models/Kartu/KartuDanaUmum.cpp ---
+#include "models/Kartu/KartuDanaUmum.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include <iostream>
+
+void KartuHariUlangTahun::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "Kartu: \"" << getNamaKartu() << "\"\n";
+    std::cout << "Kamu mendapatkan M" << JUMLAH << " dari setiap pemain lain.\n";
+    svc.collectFromAllPlayers(pemain, JUMLAH);
+}
+
+void KartuBiayaDokter::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "Kartu: \"" << getNamaKartu() << "\"\n";
+    std::cout << "Kamu membayar M" << JUMLAH << " ke Bank.\n";
+    svc.transferMoney(&pemain, nullptr, JUMLAH);
+}
+
+void KartuMauNyaleg::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
+    std::cout << "Kartu: \"" << getNamaKartu() << "\"\n";
+    std::cout << "Kamu membayar M" << JUMLAH << " kepada setiap pemain lain.\n";
+    svc.payToAllPlayers(pemain, JUMLAH);
+}
+--- ./src/models/Properti/PropertiRailroad.cpp ---
+#include "models/Properti/PropertiRailroad.hpp"
+#include "models/Properti/ManagerProperti.hpp"
+
+PropertiRailroad::PropertiRailroad(const PropertiConfig& config):
+    Properti(config){}
+
+int PropertiRailroad::hitungSewa(int dadu, ManagerProperti& manager) {
+    if(getStatus() == StatusProperti::MORTGAGED) return 0;
+
+    Pemain* pemilik = getPemilik();
+    if(pemilik == nullptr) return 0;
+
+    int jumlah = manager.hitungRailroad(pemilik);
+
+    return manager.getHargaSewaRailroad(jumlah);
+}
+
+std::string PropertiRailroad::getJenisString() const{
+    return "railroad";
+}
+
+--- ./src/models/Properti/Properti.cpp ---
+#include "models/Properti/Properti.hpp"
+#include <string>
+
+Properti::Properti(const PropertiConfig& config) :
+    config(&config), pemilik(nullptr), status(StatusProperti::BANK){}
+
+const std::string& Properti::getKode() const{
+    return config->getKode();
+}
+
+const std::string& Properti::getNamaProperti() const{
+    return config->getNama();
+}
+
+Properti::StatusProperti Properti::getStatus() const{
+    return status;
+}
+
+std::string Properti::getJenisString() const{
+    return config->getJenis();
+}
+
+std::string Properti::getBangunanString() const{
+    return "0";
+}
+
+std::string Properti::getStatusString() const{
+    switch (status) {
+    case StatusProperti::BANK:
+        return "BANK";
+    case StatusProperti::OWNED:
+        return "OWNED";
+    case StatusProperti::MORTGAGED:
+        return "MORTGAGED";
+    }
+
+    return "BANK";
+}
+
+std::string Properti::getPemilikString() const{
+    if (pemilik == nullptr) {
+        return "BANK";
+    }
+
+    return pemilik->getUsername();
+}
+
+Pemain* Properti::getPemilik() const{
+    return pemilik;
+}
+
+void Properti::setPemilik(Pemain* pemain){
+    pemilik = pemain;
+    status = StatusProperti::OWNED;
+}
+
+const PropertiConfig* Properti::getConfigProperti () {
+    return config;
+}
+
+void Properti::setStatus (StatusProperti s) {
+    status = s;
+}
+
+void Properti::gadai(){
+    status = StatusProperti::MORTGAGED;
+}
+
+void Properti::batalGadai(){
+    status = StatusProperti::OWNED;
+}
+
+int Properti::getNilaiGadai() const {
+    return config->getNilaiGadai();
+}
+--- ./src/models/Properti/ManagerProperti.cpp ---
+#include "models/Properti/ManagerProperti.hpp"
+
+ManagerProperti::ManagerProperti(const ConfigData& configData) : 
+    configData(configData){
+        for(auto& pair : configData.getPropertiMap()){
+        const PropertiConfig& cfg = pair.second;
+
+        if(cfg.getJenis() == "STREET"){
+            daftarProperti[cfg.getId()] = new PropertiStreet(cfg);
+        }
+        else if(cfg.getJenis() == "RAILROAD"){
+            daftarProperti[cfg.getId()] = new PropertiRailroad(cfg);
+        }
+        else if(cfg.getJenis() == "UTILITY"){
+            daftarProperti[cfg.getId()] = new PropertiUtility(cfg);
+        }
+    }
+    }
+
+bool ManagerProperti::isMonopoly(Pemain* pemain, PropertiStreet::ColorGroup warna){
+    auto list = getPropertiByGrup(warna);
+
+    if(list.empty()) return false;
+
+    for(auto p : list){
+        if(p->getPemilik() != pemain || 
+           p->getStatus() != Properti::StatusProperti::OWNED){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool ManagerProperti::isBisaBangun(PropertiStreet* target){
+    // tidak bisa bangun kalau pemain tidak memonopoli
+    if(!isMonopoly(target->getPemilik(), target->getWarna())){
+        return false;
+    }
+
+    auto group = getPropertiByGrup(target->getWarna());
+    int targetLevel = target->getJumlahBangunan();
+
+    // tidak dapat membangun jika selisih rumah antarpetak lebih dari 1
+    for(auto p : group){
+        if(abs(p->getJumlahBangunan() - targetLevel) > 1){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void ManagerProperti::jualSemuaBangunan(Pemain* pemain, PropertiStreet::ColorGroup warna){
+    auto group = getPropertiByGrup(warna);
+
+    for(auto p : group){
+        if(p->getPemilik() == pemain){
+            while(p->getJumlahBangunan() > 0){
+                p->turunkanBangunan();
+            }
+        }
+    }
+}
+
+int ManagerProperti::hitungLikuidasi(Pemain* pemain){
+    int total = 0;
+
+    for(auto& pair : daftarProperti){
+        Properti* p = pair.second;
+
+        if(p->getPemilik() != pemain) continue;
+
+        // nilai gadai
+        total += p->getNilaiGadai();
+
+        // bangunan (khusus street)
+        auto street = dynamic_cast<PropertiStreet*>(p);
+        if(street){
+            int level = street->getJumlahBangunan();
+            total += level * (street->getHargaBangun() / 2);
+        }
+    }
+
+    return total;
+}
+
+bool ManagerProperti::isPunyaSemuaDalamGrup(Pemain* pemain, PropertiStreet::ColorGroup warna){
+    auto group = getPropertiByGrup(warna);
+
+    if(group.empty()) return false;
+
+    for(auto p : group){
+        if(p->getPemilik() != pemain){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+std::vector<PropertiStreet*> ManagerProperti::getPropertiByGrup(PropertiStreet::ColorGroup warna){
+    std::vector<PropertiStreet*> result;
+
+    for(auto& pair : daftarProperti){
+        auto street = dynamic_cast<PropertiStreet*>(pair.second);
+
+        if(street && street->getWarna() == warna){
+            result.push_back(street);
+        }
+    }
+
+    return result;
+}
+
+Properti* ManagerProperti::getProperti(int id){
+    auto it = daftarProperti.find(id);
+    if(it != daftarProperti.end()){
+        return it->second;
+    }
+    return nullptr;
+}
+
+int ManagerProperti::hitungUtility(Pemain* pemain){
+    int count = 0;
+
+    for(auto& pair : daftarProperti){
+        auto util = dynamic_cast<PropertiUtility*>(pair.second);
+
+        if(util && util->getPemilik() == pemain){
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int ManagerProperti::getPengaliUtility(int jumlah){
+    return configData.getPengaliUtility(jumlah);
+}
+
+int ManagerProperti::hitungRailroad(Pemain* pemain){
+    int count = 0;
+
+    for(auto& pair : daftarProperti){
+        auto rr = dynamic_cast<PropertiRailroad*>(pair.second);
+
+        if(rr && rr->getPemilik() == pemain){
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int ManagerProperti::getHargaSewaRailroad(int jumlah){
+    return configData.getHargaSewaRailroad(jumlah);
+}
+
+ManagerProperti::~ManagerProperti(){
+    for(auto& p : daftarProperti){
+        delete p.second;
+    }
+}
+
+
+--- ./src/models/Properti/PropertiStreet.cpp ---
+#include "models/Properti/ManagerProperti.hpp"
+
+PropertiStreet::PropertiStreet(const PropertiConfig& config) : 
+    Properti(config), level(0), tabelHargaSewa(config.getHargaSewa()){
+        warna = convertWarna(config.getWarna());
+}
+bool PropertiStreet::punyaHotel() const{
+    return level == 5;
+}
+
+int PropertiStreet::hitungSewa(int dadu, ManagerProperti& manager){
+    if(status == StatusProperti::MORTGAGED) return 0;
+
+    if(level == 0){
+        int base = config->getHargaSewa(0);
+
+        Pemain* pemilik = getPemilik();
+        if(pemilik == nullptr) return 0;
+
+        if(manager.isMonopoly(pemilik, warna)){
+            return base * 2;
+        }
+        return base;
+    }
+
+    return config->getHargaSewa(level);
+}
+
+void PropertiStreet::bangun(ManagerProperti& manager){
+    if(level >= 5) return;
+
+    if(manager.isMonopoly(getPemilik(), warna) && manager.isBisaBangun(this)){
+        level++;
+    }
+} 
+
+int PropertiStreet::getJumlahBangunan() const{
+    return level;
+}
+
+int PropertiStreet::getHargaBangun() const{
+    if(level < 4){ // untuk bangun rumah
+        return config->getHargaBangunRumah();
+    }
+    else if(level == 4){ // untuk upgrade ke hotel
+        return config->getHargaBangunHotel();
+    }
+    return 0;
+}
+
+std::string PropertiStreet::getJenisString() const{
+    return "street";
+}
+
+std::string PropertiStreet::getBangunanString() const{
+    return getJumlahBangunanString();
+}
+
+std::string PropertiStreet::getJumlahBangunanString() const{
+    if (punyaHotel()) {
+        return "H";
+    }
+
+    return std::to_string(level);
+}
+
+PropertiStreet::ColorGroup PropertiStreet::getWarna() const{
+    return warna;
+}
+
+PropertiStreet::ColorGroup PropertiStreet::convertWarna(const std::string& warnaStr){
+    if(warnaStr == "COKLAT") return PropertiStreet::ColorGroup::COKLAT;
+    if(warnaStr == "BIRU_MUDA") return PropertiStreet::ColorGroup::BIRU_MUDA;
+    if(warnaStr == "MERAH_MUDA") return PropertiStreet::ColorGroup::MERAH_MUDA;
+    if(warnaStr == "ORANGE") return PropertiStreet::ColorGroup::ORANGE;
+    if(warnaStr == "MERAH") return PropertiStreet::ColorGroup::MERAH;
+    if(warnaStr == "KUNING") return PropertiStreet::ColorGroup::KUNING;
+    if(warnaStr == "HIJAU") return PropertiStreet::ColorGroup::HIJAU;
+    if(warnaStr == "BIRU_TUA") return PropertiStreet::ColorGroup::BIRU_TUA;
+    return PropertiStreet::ColorGroup::DEFAULT;
+}
+
+void PropertiStreet::turunkanBangunan(){
+    if(level > 0) level--;
+}
+
+--- ./src/models/Properti/PropertiUtility.cpp ---
+#include "models/Properti/PropertiUtility.hpp"
+#include "models/Properti/ManagerProperti.hpp"
+
+PropertiUtility::PropertiUtility(const PropertiConfig& config):
+    Properti(config){}
+
+int PropertiUtility::hitungSewa(int dadu, ManagerProperti& manager) {
+    if(getStatus() == StatusProperti::MORTGAGED) return 0;
+
+    Pemain* pemilik = getPemilik();
+    if(pemilik == nullptr) return 0;
+
+    int jumlah = manager.hitungUtility(pemilik);
+    int pengali = manager.getPengaliUtility(jumlah);
+
+    return dadu * pengali;
+}
+
+std::string PropertiUtility::getJenisString() const{
+    return "utility";
+}
+--- ./src/core/BangkrutDanEndGame.cpp ---
+#include "../../include/core/BangkrutDanEndGame.hpp"
+
+// Kebangkrutan
+void Kebangkrutan::declareBangkrut (Pemain *p) {
+    p->setStatus(StatusPemain::BANKRUPT);
+}
+
+void Kebangkrutan::tampilkanBangkrut (Pemain *p) {
+    std::cout << p->getUsername() << " telah bangkrut dan dikeluarkan dari permainan\n";
+}
+
+// Likuidasi
+bool Likuidasi::bisaBayarDenganLikuidasi (Pemain *p, int harga) {
+    return totalLikuidasiSeluruhAsetJual(p) >= harga;
+}
+
+bool Likuidasi::bisaBayarLangsung (Pemain* p, int harga) {
+    return p->getSaldo() >= harga;
+}
+
+
+int Likuidasi::totalLikuidasiSeluruhAsetGadai (Pemain *p) {
+    int res = p->getSaldo();
+
+    for (auto aset : p->getAsetPemain()) {
+        res += aset->getNilaiGadai();
+
+        auto street = dynamic_cast<PropertiStreet*>(aset);
+        if(street){
+            int level = street->getJumlahBangunan();
+            res += level * (street->getHargaBangun() / 2);
+        }
+    }
+
+    return res;
+}
+
+int Likuidasi::totalLikuidasiSeluruhAsetJual (Pemain *p) {
+    int res = p->getSaldo();
+
+    for (auto aset : p->getAsetPemain()) {
+        res += aset->getConfigProperti()->getHargaLahan();
+
+        auto street = dynamic_cast<PropertiStreet*>(aset);
+        if(street){
+            int level = street->getJumlahBangunan();
+            res += level * (street->getHargaBangun() / 2);
+        }
+    }
+
+    return res;
+}
+
+void Likuidasi::tampilkanPanelLikuidasi (Pemain *p, int harga) {
+    if (config) {
+        Formatter::cetakPropertiPemain(p, *config);
+        std::cout << "Gunakan perintah JUAL atau GADAI untuk menjual atau menggadai properti ke Bank!\n";
+        while (!bisaBayarLangsung(p, harga)) {
+            std::cout << "Uang masih tidak cukup! Gadaikan atau jual lagi propertimu!\n";
+            // menerima command input dari user tapi harus jual atau gadai atau tebus (gunanya tebus buat beli gadai terus dijual beneran, biar totalnya nanti dapet duitnya lebih banyak)
+
+        }
+
+    }
+}
+
+// SelesaiGame
+Pemain* SelesaiGame::getPemenang (vector<Pemain*> listPemain) {
+    Pemain* pemenang = new Pemain("temp", 0);
+
+    for (auto player : listPemain) {
+        if (player->getStatus() != StatusPemain::BANKRUPT) {
+            if (player > pemenang) {
+                pemenang = player;
+            }
+        }
+    }
+
+    return pemenang;
+    
+}
+
+bool SelesaiGame::sisaSatuOrang (vector<Pemain*> listPemain) {
+    int count = 0;
+
+    for (auto player : listPemain) {
+        if (player->getStatus() == StatusPemain::ACTIVE) {
+            count++;
+        }
+    }
+
+    return count == 1;
+}
+
+void SelesaiGame::tampilPanelSelesaiKarenaMaxTurn (int maxTurn) {
+    std::cout << "Permainan Selesai! Sudah mencapai " << maxTurn << " giliran!\n";
+}
+
+void SelesaiGame::tampilPanelSelesaiKarenaBangkrut () {
+    std::cout << "Permainan Selesai! Semua pemain kecuali satu pemain bangkrut\n";
+}
+
+void SelesaiGame::tampilkanPemenang (Pemain *p) {
+    std::cout << "Pemenang permainan ini adalah " << p->getUsername() << "\n";
+}
+
+--- ./src/core/GameEngine.cpp ---
+#include "../../include/core/GameEngine.hpp"
+
+GameEngine::GameEngine() 
+    : configData(nullptr), papanPermainan(nullptr), logGame(nullptr), deckKartu(nullptr), 
+      dadu(nullptr), managerPenjara(nullptr), managerProperti(nullptr),
+      actionService(nullptr), currentTurnIndex(0), maxTurn(0), arahNormalTurn(true) {
+}
+
+GameEngine::~GameEngine() {
+    // Cleanup jika diperlukan
+    if (configData) delete configData;
+    for (Pemain* p : listPemain) {
+        delete p;
+    }
+    for (Pemain* p : urutanPemain) {
+        delete p;
+    }
+}
+
+void GameEngine::startGame() {
+    // Implementasi logic game utama
+
+    // acak urutan playernya
+    randomizeTurn();
+
+    // iterasi sebanyak jumlah turn
+    for (int currentTurn = 1; currentTurn <= maxTurn; currentTurn++) {
+
+        // jalanin turn buat tiap player
+        for (auto player : urutanPemain) {
+
+            if (player->getStatus() != StatusPemain::BANKRUPT) { // yang bangkrut di skip
+                continue;
+            }
+
+            if (SelesaiGame::sisaSatuOrang(listPemain)) { // kalo di tengah2 turn udah tinggal sisa satu orang, game langsung selesai
+                SelesaiGame::tampilPanelSelesaiKarenaBangkrut();
+                SelesaiGame::tampilkanPemenang (player);
+                return;
+            }
+
+
+            // player bisa pilih mau liat2 akta, atau liat2 properti dia sendiri, ato mau jalan, ato mau make kartu
+            startTurn (player, currentTurn);
+
+            // habis turnya selesai normalnya player pindah tempat -> jalanin onlanded dari petak yang diinjek
+            Petak* diTempati = papanPermainan->getPetak((const int)player->getPosisi());
+            diTempati->onLanded(*player, *actionService);
+            
+        }
+    }
+
+    Pemain* pemenang = SelesaiGame::getPemenang (listPemain);
+    SelesaiGame::tampilPanelSelesaiKarenaMaxTurn(maxTurn);
+    SelesaiGame::tampilkanPemenang (pemenang);
+
+}
+
+void GameEngine::randomizeTurn() {
+    for (Pemain* p : listPemain) {
+        this->urutanPemain.push_back(new Pemain(*p));
+    }
+    random_shuffle(this->urutanPemain.begin(), this->urutanPemain.end());
+}
+
+void GameEngine::startTurn(Pemain* p, int currentTurn) {
+    // isi if else nya bisa diisi kalo udah ada command
+    while (true) {
+        bool awalGiliran = true;
+        if (1) { // atur dadu manual
+            int a, b; // ini stub
+            if (p->getStatus() == StatusPemain::ACTIVE) {
+                dadu->rollManual(a, b);
+                actionService->movePlayerRelative(*p, dadu->getTotalNilaiDadu());
+                break;
+            }
+            else if (p->getStatus() == StatusPemain::JAILED) {
+                std::cout << p->getUsername() << " sedang di penjara, tidak bisa melakukan atur dadu manual!\n";
+            }
+        }
+        else if (1) { // roll dadu random
+            if (p->getStatus() == StatusPemain::ACTIVE) {
+                dadu->rollRandom();
+                actionService->movePlayerRelative(*p, dadu->getTotalNilaiDadu());
+            }
+            else if (p->getStatus() == StatusPemain::JAILED) {
+                managerPenjara->tryEscapeByDouble(*p, *dadu, *actionService);
+            }
+            break;
+
+        }
+        else if (1) { // bayar fine (khusus kalo di penjara)
+            if (p->getStatus() == StatusPemain::ACTIVE) {
+                std::cout << p->getUsername() << " tidak sedang dipenjara, tidak bisa bayar denda!\n";
+            }
+            else if (p->getStatus() == StatusPemain::JAILED) {
+                managerPenjara->paksaBayar(*p, *actionService);
+                break;
+            }
+        }
+        else if (1) { // cetak akta
+            // minta input kode properti dari user
+            int kode = 0; // ini masih stub
+            Properti *inginDicetak = managerProperti->getProperti(0);
+            if (configData) {
+                Formatter::cetakAktaProperti(inginDicetak, *configData);
+            }
+        }
+        else if (1) { // cetak papan
+            Formatter::cetakPapan(*papanPermainan, listPemain, currentTurn, maxTurn);
+        }
+        else if (1) { // cetak properti
+            if (configData) {
+                Formatter::cetakPropertiPemain(p, *configData);
+            }
+        }
+        else if (1) { // gadai
+            if (configData) {
+                Formatter::tampilkanPropertiYangBisaDigadai(p, *configData);
+            }
+        }
+        else if (1) { // tebus
+            if (configData) {
+                Formatter::tampilkanPropertiYangBisaDitebus(p, *configData);
+            }
+        }
+        else if (1) { // bangun
+            if (configData) {
+                Formatter::tampilkanPropertiYangBisaDibangun(p, *managerProperti, *configData);
+            }
+        }
+        else if (1) { // make kartu
+
+        }
+        else if (1) { // save game, cuma bisa di awal giliran
+            if (awalGiliran) {
+                // game kesave
+            }
+            else {
+                std::cout << "Tidak bisa menyimpan game di tengah-tengah giliran!\n";
+            }
+        }
+        awalGiliran = false;
+    }
+}

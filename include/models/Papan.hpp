@@ -4,7 +4,7 @@
 #include "Petak/PetakAksi.hpp"
 #include "Petak/PetakSpesial.hpp"
 #include "PlayerActionService.hpp"
-#include "Properti/ManagerProperti.hpp"
+#include "Managers/ManagerProperti.hpp"
 #include <vector>
 
 class Papan{

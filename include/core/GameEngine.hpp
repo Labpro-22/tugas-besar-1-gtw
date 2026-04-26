@@ -9,10 +9,10 @@
 #include "../models/ConfigData.hpp"
 #include "../models/Pemain.hpp"
 #include "../models/PlayerActionService.hpp"
-#include "../models/ManagerPenjara.hpp"
+#include "../models/Managers/ManagerPenjara.hpp"
 #include "../models/Papan.hpp"
 #include "../models/Dadu.hpp"
-#include "../models/Properti/ManagerProperti.hpp"
+#include "../models/Managers/ManagerProperti.hpp"
 #include "../models/Kartu/Kartu.hpp"
 #include "../models/Kartu/DeckKartu.hpp"
 #include "../utils/LogTransaksiGame.hpp"
@@ -24,6 +24,7 @@ using namespace std;
 class Petak;
 class Properti;
 class PropertiStreet;
+class ManagerFestival;
 template <typename T> class DeckKartu;
 
 class GameEngine {

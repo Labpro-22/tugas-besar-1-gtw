@@ -1,4 +1,4 @@
-#include "models/Properti/ManagerProperti.hpp"
+#include "models/Managers/ManagerProperti.hpp"
 
 PropertiStreet::PropertiStreet(const PropertiConfig& config) : 
     Properti(config), level(0), tabelHargaSewa(config.getHargaSewa()){

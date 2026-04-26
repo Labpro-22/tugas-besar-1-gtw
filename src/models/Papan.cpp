@@ -1,4 +1,9 @@
 #include "models/Papan.hpp"
+#include "models/Petak/PetakKartu.hpp"
+#include "models/Petak/PetakPajak.hpp"
+#include "models/Petak/PetakFestival.hpp"
+#include "models/Petak/PetakSpesial.hpp"
+#include "models/Petak/PetakProperti.hpp"
 
 Papan::Papan(ManagerProperti& manager, ConfigData& configData){
     int n = configData.getPropertiMap().size() + configData.getAksiMap().size();
@@ -28,7 +33,9 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
                     new PetakKartu(
                         aksi->second.getId(),
                         aksi->second.getKode(),
-                        aksi->second.getNama()
+                        aksi->second.getNama(),
+                        PetakKartu::JenisKartu::KESEMPATAN, // dummy
+                        nullptr
                     )
                 );
             }
@@ -38,7 +45,8 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
                     new PetakPajak(
                         aksi->second.getId(),
                         aksi->second.getKode(),
-                        aksi->second.getNama()
+                        aksi->second.getNama(),
+                        nullptr
                     )
                 );
             }
@@ -48,7 +56,8 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
                     new PetakFestival(
                         aksi->second.getId(),
                         aksi->second.getKode(),
-                        aksi->second.getNama()
+                        aksi->second.getNama(),
+                        nullptr
                     )
                 );
             }
@@ -75,7 +84,7 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
                 }
                 else if(aksi->second.getKode() == "PPJ"){
                     daftarPetak.push_back(
-                        new PetakPergiKePenjara(
+                        new PetakPergiPenjara(
                             aksi->second.getId(),
                             aksi->second.getKode(),
                             aksi->second.getNama()
