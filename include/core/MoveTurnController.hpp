@@ -39,4 +39,8 @@ public :
     Pemain* getPlayerTurn ();
 
     void startTurn (); // per satu kali jalan
+
+    vector<Pemain*> getUrutanPemain() { return urutanPemain; }
+
+    Pemain getCurrPemain() { return playerTurn; };
 };

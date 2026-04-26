@@ -48,6 +48,22 @@ int PropertiStreet::getHargaBangun() const{
     return 0;
 }
 
+std::string PropertiStreet::getJenisString() const{
+    return "street";
+}
+
+std::string PropertiStreet::getBangunanString() const{
+    return getJumlahBangunanString();
+}
+
+std::string PropertiStreet::getJumlahBangunanString() const{
+    if (punyaHotel()) {
+        return "H";
+    }
+
+    return std::to_string(level);
+}
+
 PropertiStreet::ColorGroup PropertiStreet::getWarna() const{
     return warna;
 }

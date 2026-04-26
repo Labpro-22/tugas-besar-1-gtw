@@ -13,6 +13,9 @@ void MoveCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
 std::string MoveCard::getDeskripsi() const {
     return "MoveCard - Maju " + std::to_string(langkah) + " Petak";
 }
+std::string MoveCard::getNilaiState() const {
+    return std::to_string(langkah);
+}
 
 DiscountCard::DiscountCard(int persen) : KartuKemampuanSpesial("DiscountCard"), persenDiskon(persen), sisaDurasi(0) {}
 void DiscountCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
@@ -23,6 +26,12 @@ void DiscountCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
 }
 std::string DiscountCard::getDeskripsi() const {
     return "DiscountCard - Diskon " + std::to_string(persenDiskon) + "% selama 1 giliran";
+}
+std::string DiscountCard::getNilaiState() const {
+    return std::to_string(persenDiskon);
+}
+std::string DiscountCard::getSisaDurasiState() const {
+    return std::to_string(sisaDurasi);
 }
 
 ShieldCard::ShieldCard() : KartuKemampuanSpesial("ShieldCard") {}

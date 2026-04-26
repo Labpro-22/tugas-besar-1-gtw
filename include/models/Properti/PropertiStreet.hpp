@@ -22,6 +22,9 @@ public:
     void bangun(ManagerProperti& manager); //maks 4 rumah + 1 hotel
     int getJumlahBangunan() const;
     int getHargaBangun() const;
+    std::string getJenisString() const override;
+    std::string getBangunanString() const override;
+    std::string getJumlahBangunanString() const;
     ColorGroup getWarna() const;
     void turunkanBangunan();
     ColorGroup convertWarna(const std::string& warnaStr);

@@ -16,6 +16,35 @@ Properti::StatusProperti Properti::getStatus() const{
     return status;
 }
 
+std::string Properti::getJenisString() const{
+    return config->getJenis();
+}
+
+std::string Properti::getBangunanString() const{
+    return "0";
+}
+
+std::string Properti::getStatusString() const{
+    switch (status) {
+    case StatusProperti::BANK:
+        return "BANK";
+    case StatusProperti::OWNED:
+        return "OWNED";
+    case StatusProperti::MORTGAGED:
+        return "MORTGAGED";
+    }
+
+    return "BANK";
+}
+
+std::string Properti::getPemilikString() const{
+    if (pemilik == nullptr) {
+        return "BANK";
+    }
+
+    return pemilik->getUsername();
+}
+
 Pemain* Properti::getPemilik() const{
     return pemilik;
 }

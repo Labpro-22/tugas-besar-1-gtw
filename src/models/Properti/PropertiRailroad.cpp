@@ -14,3 +14,7 @@ int PropertiRailroad::hitungSewa(int dadu, ManagerProperti& manager) {
 
     return manager.getHargaSewaRailroad(jumlah);
 }
+
+std::string PropertiRailroad::getJenisString() const{
+    return "railroad";
+}

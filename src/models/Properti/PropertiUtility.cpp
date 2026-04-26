@@ -15,3 +15,7 @@ int PropertiUtility::hitungSewa(int dadu, ManagerProperti& manager) {
 
     return dadu * pengali;
 }
+
+std::string PropertiUtility::getJenisString() const{
+    return "utility";
+}

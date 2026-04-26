@@ -51,6 +51,10 @@ bool ManagerFestival::isAktif(Properti* properti) const {
     return it != efekAktif.end() && it->second.second > 0;
 }
 
+std::string ManagerFestival::getFestivalString(Properti* properti) const {
+    return std::to_string(getPengali(properti)) + " " + std::to_string(getSisaDurasi(properti));
+}
+
 PetakFestival::PetakFestival(int indeks, const std::string& kode, const std::string& nama, ManagerFestival* mgr) : PetakAksi(indeks, kode, nama), managerFestival(mgr) {}
 
 void PetakFestival::onLanded(Pemain& pemain, PlayerActionService& svc) {

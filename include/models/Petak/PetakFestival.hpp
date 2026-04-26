@@ -19,6 +19,7 @@ public:
     int getPengali(Properti* properti) const;
     int getSisaDurasi(Properti* properti) const;
     bool isAktif(Properti* properti) const;
+    std::string getFestivalString(Properti* properti) const;
 };
 
 class PetakFestival : public PetakAksi {

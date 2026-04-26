@@ -14,6 +14,8 @@ public:
     virtual ~KartuKemampuanSpesial() = default;
     virtual void gunakan(Pemain& pemain, PlayerActionService& svc) = 0;
     virtual std::string getDeskripsi() const = 0;
+    virtual std::string getNilaiState() const { return ""; }
+    virtual std::string getSisaDurasiState() const { return ""; }
     const std::string& getNamaKartu() const { return namaKartu; }
 };
 
@@ -25,6 +27,7 @@ public:
     ~MoveCard() = default;
     void gunakan(Pemain& pemain, PlayerActionService& svc) override;
     std::string getDeskripsi() const override;
+    std::string getNilaiState() const override;
     int getLangkah() const { return langkah; }
 };
 
@@ -37,6 +40,8 @@ public:
     ~DiscountCard() = default;
     void gunakan(Pemain& pemain, PlayerActionService& svc) override;
     std::string getDeskripsi() const override;
+    std::string getNilaiState() const override;
+    std::string getSisaDurasiState() const override;
     int getPersenDiskon() const { return persenDiskon; }
     int getSisaDurasi() const { return sisaDurasi; }
     void setSisaDurasi(int d) { sisaDurasi = d; }

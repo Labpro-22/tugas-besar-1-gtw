@@ -22,6 +22,11 @@ public:
 
     StatusProperti getStatus() const;
 
+    virtual std::string getJenisString() const;
+    virtual std::string getBangunanString() const;
+    std::string getStatusString() const;
+    std::string getPemilikString() const;
+
     Pemain* getPemilik() const;
 
     void setPemilik(Pemain* pemilik);
