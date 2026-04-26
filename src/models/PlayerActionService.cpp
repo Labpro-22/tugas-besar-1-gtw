@@ -66,9 +66,27 @@ void PlayerActionService::payToAllPlayers(Pemain& pembayar, int jumlahPerOrang) 
 }
 
 void PlayerActionService::movePlayerRelative(Pemain& p, int n) {
-    // stub: MovementController::moveSteps() akan dipakai saat integrasi
     int totalPetak = papan ? papan->getTotalPetak() : 40;
-    int posiBaru = ((p.getPosisi() + n) % totalPetak + totalPetak) % totalPetak;
+    int posisiLama = p.getPosisi();
+    if (posisiLama < 1 || posisiLama > totalPetak) {
+        posisiLama = 1;
+    }
+
+    // Normalisasi ke rentang [1..totalPetak] agar konsisten dengan indeks petak di papan.
+    int zeroBased = ((posisiLama - 1 + n) % totalPetak + totalPetak) % totalPetak;
+    int posiBaru = zeroBased + 1;
+
+    // Sesuai spesifikasi: jika pemain berhenti tepat di GO atau melewati GO saat bergerak maju,
+    // pemain menerima gaji GO.
+    if (n > 0 && config) {
+        int langkahMajuBersih = n % totalPetak;
+        bool lewatAtauTepatGO = (langkahMajuBersih == 0) || ((posisiLama + langkahMajuBersih) > totalPetak);
+        if (lewatAtauTepatGO) {
+            transferMoney(nullptr, &p, config->getGajiGo());
+            logAksi(p, "GO", "Menerima gaji GO M" + std::to_string(config->getGajiGo()));
+        }
+    }
+
     p.setPosisi(posiBaru);
     OutputHandler::cetakAksi(p.getUsername(), "bergerak ke petak " + std::to_string(posiBaru));
     logAksi(p, "GERAK", "pindah ke indeks " + std::to_string(posiBaru));

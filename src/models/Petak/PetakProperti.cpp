@@ -1,5 +1,7 @@
 #include "models/Pemain.hpp"
 #include "models/Petak/PetakProperti.hpp"
+#include "models/Petak/PetakStasiun.hpp"
+#include "models/Petak/PetakUtilitas.hpp"
 #include "models/PlayerActionService.hpp"
 #include <iostream>
 
@@ -7,9 +9,34 @@ PetakProperti::PetakProperti(int indeks, const std::string& kode, const std::str
     Petak(indeks, kode, nama), config(&config), pemilik(nullptr), status(StatusProperti::BANK) {}
 
 void PetakProperti::onLanded(Pemain& pemain, PlayerActionService& actionService) {
-    // For now, delegate to PlayerActionService until Phase 3 rewrites this.
-    // actionService.handleLandedOnProperti(pemain, *this);
     std::cout << "Mendarat di properti: " << nama << " (" << kode << ")\n";
+
+    // Tidak ada aksi jika mendarat di properti sendiri.
+    if (pemilik == &pemain) {
+        return;
+    }
+
+    if (status == StatusProperti::BANK) {
+        // Railroad dan Utility: kepemilikan otomatis ke pemain pertama yang mendarat.
+        if (dynamic_cast<PetakStasiun*>(this) || dynamic_cast<PetakUtilitas*>(this)) {
+            setPemilik(&pemain);
+            pemain.tambahAset(this);
+            actionService.logAksi(pemain, "BELI_OTOMATIS", kode + " kini milik " + pemain.getUsername());
+            return;
+        }
+
+        // Street: pemain ditawari beli, jika tidak maka masuk lelang (ditangani service).
+        actionService.beliProperti(pemain, *this);
+        return;
+    }
+
+    if (status == StatusProperti::OWNED && pemilik != nullptr) {
+        int nilaiDadu = 0;
+        if (actionService.getDadu()) {
+            nilaiDadu = actionService.getDadu()->getTotalNilaiDadu();
+        }
+        actionService.bayarSewa(pemain, *this, nilaiDadu);
+    }
 }
 
 PetakProperti::StatusProperti PetakProperti::getStatus() const {
