@@ -70,11 +70,11 @@ void Likuidasi::tampilkanPanelLikuidasi (Pemain *p, int harga) {
 
 // SelesaiGame
 Pemain* SelesaiGame::getPemenang (vector<Pemain*> listPemain) {
-    Pemain* pemenang = new Pemain("temp", 0);
+    Pemain* pemenang = nullptr;
 
     for (auto player : listPemain) {
         if (player->getStatus() != StatusPemain::BANKRUPT) {
-            if (player > pemenang) {
+            if (pemenang == nullptr || *player > *pemenang) {
                 pemenang = player;
             }
         }

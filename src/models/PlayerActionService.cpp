@@ -374,7 +374,12 @@ void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
     Pemain* target = kandidat[pilihan - 1];
     OutputHandler::cetakAksi(target->getUsername(), "ditarik ke posisi " + pemain.getUsername() + " (petak " + std::to_string(posiSaya) + ")");
     target->setPosisi(posiSaya);
-    // TODO (integrasi): papan->getPetak(posiSaya)->onLanded(*target, *this)
+    if (papan) {
+        Petak* petakTujuan = papan->getPetak(posiSaya);
+        if (petakTujuan) {
+            petakTujuan->onLanded(*target, *this);
+        }
+    }
     logAksi(pemain, "KARTU", "LassoCard : tarik " + target->getUsername() + " ke petak " + std::to_string(posiSaya));
 }
 
