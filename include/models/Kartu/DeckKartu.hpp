@@ -21,7 +21,7 @@ public:
             acakUlang();
         }
         if (tumpukanKartu.empty()) {
-            throw std::runtime_error("Deck kosong");
+            throw std::runtime_error("Deck kosong dan tidak ada kartu di pembuangan untuk dikembalikan");
         }
         T* kartu = tumpukanKartu.back();
         tumpukanKartu.pop_back();
