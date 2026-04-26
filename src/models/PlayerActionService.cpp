@@ -248,6 +248,9 @@ void PlayerActionService::reverseTurnOrder(Pemain& pemain) {
 }
 
 void PlayerActionService::simpanKartuBebasPenjara(Pemain& pemain, Kartu* kartu) {
+    if (pemain.isPunyaKartuBebasPenjara()) {
+        throw SlotKartuPenuhException();
+    }
     pemain.setPunyaKartuBebasPenjara(true);
     std::cout << "Kartu Bebas Penjara tersimpan di tangan " << pemain.getUsername() << ".\n";
     logAksi(pemain, "KARTU", "KartuBebasPenjara disimpan di tangan");
