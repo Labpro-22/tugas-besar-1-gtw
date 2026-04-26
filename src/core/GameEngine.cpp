@@ -14,9 +14,8 @@ GameEngine::~GameEngine() {
     for (Pemain* p : listPemain) {
         delete p;
     }
-    for (Pemain* p : urutanPemain) {
-        delete p;
-    }
+    // urutanPemain berisi pointer yang sama dengan listPemain (bukan owner)
+    urutanPemain.clear();
 }
 
 void GameEngine::startGame() {
@@ -31,7 +30,7 @@ void GameEngine::startGame() {
         // jalanin turn buat tiap player
         for (auto player : urutanPemain) {
 
-            if (player->getStatus() != StatusPemain::BANKRUPT) { // yang bangkrut di skip
+            if (player->getStatus() == StatusPemain::BANKRUPT) { // yang bangkrut di skip
                 continue;
             }
 
@@ -59,10 +58,10 @@ void GameEngine::startGame() {
 }
 
 void GameEngine::randomizeTurn() {
-    for (Pemain* p : listPemain) {
-        this->urutanPemain.push_back(new Pemain(*p));
-    }
-    random_shuffle(this->urutanPemain.begin(), this->urutanPemain.end());
+    urutanPemain = listPemain; // pointer asli, state tetap konsisten
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::shuffle(urutanPemain.begin(), urutanPemain.end(), gen);
 }
 
 void GameEngine::startTurn(Pemain* p, int currentTurn) {

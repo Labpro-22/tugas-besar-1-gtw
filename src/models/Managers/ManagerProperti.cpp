@@ -154,9 +154,9 @@ int ManagerProperti::getHargaSewaRailroad(int jumlah){
 }
 
 ManagerProperti::~ManagerProperti(){
-    for(auto& p : daftarProperti){
-        delete p.second;
-    }
+    // Ownership PetakProperti ada di Papan (Papan::~Papan menghapus semua Petak*).
+    // ManagerProperti hanya meregister pointer untuk query/perhitungan.
+    daftarProperti.clear();
 }
 
 
