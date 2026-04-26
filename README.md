@@ -84,7 +84,11 @@ make clean
 ## Anggota Kelompok
 
 13524042 Suryani Mulia Utami
+
 13524073 Keisha Rizka Syofyani
+
 13524087 Muhammad Fakhry Zaki
+
 13524091 Vara Azzara Ramli Pulukadang
+
 13524109 Helena Kristela Sarhawa
