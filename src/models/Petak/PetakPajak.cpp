@@ -25,6 +25,8 @@ void PetakPajak::onLanded(Pemain& pemain, PlayerActionService& svc) {
             getline(cin, input);
             if (input != "1" && input != "2") {
                 cout << "Masukan tidak valid\n";
+            } else {
+                break;
             }
         }
 
