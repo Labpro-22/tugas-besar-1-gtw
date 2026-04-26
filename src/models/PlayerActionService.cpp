@@ -14,7 +14,28 @@
 #include <algorithm>
 #include <limits>
 
-PlayerActionService::PlayerActionService( MovementController* mc, ManagerPenjara* mp, ManagerProperti* mpr, ManagerFestival* mf, ManagerTransaksi* mt, Papan* papan, LogTransaksiGame* log, std::vector<Pemain*>* pemain, int* turnIdx) : movementController(mc), managerPenjara(mp), managerProperti(mpr), managerFestival(mf), managerTransaksi(mt), papan(papan), logger(log), daftarPemain(pemain), arahNormal(true), currentTurnIdx(turnIdx) {}
+PlayerActionService::PlayerActionService(
+    MovementController* mc,
+    ManagerPenjara* mp,
+    ManagerProperti* mpr,
+    ManagerFestival* mf,
+    ManagerTransaksi* mt,
+    ConfigData* cfg,
+    Papan* papan,
+    LogTransaksiGame* log,
+    std::vector<Pemain*>* pemain,
+    int* turnIdx
+) : movementController(mc),
+    managerPenjara(mp),
+    managerProperti(mpr),
+    managerFestival(mf),
+    managerTransaksi(mt),
+    config(cfg),
+    papan(papan),
+    logger(log),
+    daftarPemain(pemain),
+    arahNormal(true),
+    currentTurnIdx(turnIdx) {}
 
 void PlayerActionService::logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail) {
     if (logger) {

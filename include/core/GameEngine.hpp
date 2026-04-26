@@ -95,6 +95,7 @@ public :
 
     int getCurrentTurnIndex() const { return currentTurnIndex; }
     void setCurrentTurnIndex(int index) { this->currentTurnIndex = index; }
+    int& getCurrentTurnIndexRef() { return currentTurnIndex; }
 
     int getMaxTurn() const { return maxTurn; }
     void setMaxTurn(int max) { this->maxTurn = max; }

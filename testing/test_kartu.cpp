@@ -32,7 +32,7 @@ public:
 };
 
 static PlayerActionService makeSvc(std::vector<Pemain*>* daftar, LogTransaksiGame* log, int* turnIdx) {
-    return PlayerActionService(nullptr, nullptr, nullptr, nullptr, log, daftar, turnIdx);
+    return PlayerActionService(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, log, daftar, turnIdx);
 }
 
 void testBuild() {

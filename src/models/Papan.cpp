@@ -8,7 +8,13 @@
 #include "models/Petak/PetakStasiun.hpp"
 #include "models/Petak/PetakUtilitas.hpp"
 
-Papan::Papan(ManagerProperti& manager, ConfigData& configData){
+Papan::Papan(
+    ManagerProperti& manager,
+    ConfigData& configData,
+    ManagerFestival* managerFestival,
+    DeckKartu<Kartu>* deckKesempatan,
+    DeckKartu<Kartu>* deckDanaUmum
+){
     int n = configData.getPropertiMap().size() + configData.getAksiMap().size();
 
     for(int i = 1; i <= n; i++){
@@ -38,13 +44,20 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
         auto aksi = aksiMap.find(i);
         if(aksi != aksiMap.end()){ //id merupakan aksi
             if(aksi->second.getJenis() == "KARTU"){
+                // mapping sesuai spesifikasi: DNU = Dana Umum, KSP = Kesempatan
+                PetakKartu::JenisKartu jenisKartu = PetakKartu::JenisKartu::KESEMPATAN;
+                DeckKartu<Kartu>* deck = deckKesempatan;
+                if (aksi->second.getKode() == "DNU") {
+                    jenisKartu = PetakKartu::JenisKartu::DANA_UMUM;
+                    deck = deckDanaUmum;
+                }
                 daftarPetak.push_back(
                     new PetakKartu(
                         aksi->second.getId(),
                         aksi->second.getKode(),
                         aksi->second.getNama(),
-                        PetakKartu::JenisKartu::KESEMPATAN, // dummy
-                        nullptr
+                        jenisKartu,
+                        deck
                     )
                 );
             }
@@ -55,7 +68,7 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
                         aksi->second.getId(),
                         aksi->second.getKode(),
                         aksi->second.getNama(),
-                        nullptr
+                        &configData
                     )
                 );
             }
@@ -66,7 +79,7 @@ Papan::Papan(ManagerProperti& manager, ConfigData& configData){
                         aksi->second.getId(),
                         aksi->second.getKode(),
                         aksi->second.getNama(),
-                        nullptr
+                        managerFestival
                     )
                 );
             }

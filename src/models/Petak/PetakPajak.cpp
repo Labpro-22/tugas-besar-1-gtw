@@ -7,6 +7,13 @@
 
 PetakPajak::PetakPajak(int indeks, const std::string& kode, const std::string& nama, ConfigData* konfigurasi)
     : PetakAksi(indeks, kode, nama), config(konfigurasi) {
+    // Pastikan jenis pajak terdefinisi (sebelumnya uninitialized).
+    // Mapping dari kode konfigurasi aksi.txt: "PPH" dan "PBM".
+    if (kode == "PBM") {
+        jenis = JenisPajak::PAJAK_BARANG_MEWAH;
+    } else {
+        jenis = JenisPajak::PAJAK_PENGHASILAN;
+    }
 }
 
 // Override method: onLanded

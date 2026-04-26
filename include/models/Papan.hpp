@@ -3,16 +3,26 @@
 #include "Petak/PetakProperti.hpp"
 #include "Petak/PetakAksi.hpp"
 #include "Petak/PetakSpesial.hpp"
-#include "PlayerActionService.hpp"
 #include "Managers/ManagerProperti.hpp"
+#include "Kartu/DeckKartu.hpp"
+#include "Kartu/Kartu.hpp"
 #include <vector>
+
+class ManagerFestival;
 
 class Papan{
 private:
     std::vector<Petak*> daftarPetak;
 
 public:
-    Papan(ManagerProperti& manager, ConfigData& configData); 
+    // dependency injection agar Petak Aksi tidak dibuat dengan nullptr
+    Papan(
+        ManagerProperti& manager,
+        ConfigData& configData,
+        ManagerFestival* managerFestival,
+        DeckKartu<Kartu>* deckKesempatan,
+        DeckKartu<Kartu>* deckDanaUmum
+    ); 
 
     Petak* getPetak(int indeks);
 
