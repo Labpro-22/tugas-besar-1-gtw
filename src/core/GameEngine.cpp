@@ -138,6 +138,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
     // Tahap 2: command dispatcher + validasi dasar (skill sebelum dadu)
     bool awalGiliran = (doubleCount == 0);
     bool sudahLemparDadu = false;
+    bool adaAksiStateChange = false;
     bool extraTurn = false;
 
     // Awal giliran: reset status dan bagikan 1 kartu skill acak
@@ -223,7 +224,6 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
 
             if (cmd == "CETAK_PAPAN") {
                 OutputHandler::cetakPapan(*papanPermainan, listPemain, currentTurn, maxTurn);
-                awalGiliran = false;
                 continue;
             }
 
@@ -246,19 +246,24 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                         OutputHandler::cetakAktaProperti(prop, *configData);
                     }
                 }
-                awalGiliran = false;
                 continue;
             }
 
             if (cmd == "CETAK_PROPERTI") {
                 if (configData) OutputHandler::cetakPropertiPemain(p, *configData);
-                awalGiliran = false;
                 continue;
             }
 
             if (cmd == "CETAK_LOG") {
                 int top = -1;
-                if (tok.size() >= 2) top = std::stoi(tok[1]);
+                if (tok.size() >= 2) {
+                    try {
+                        top = std::stoi(tok[1]);
+                    } catch (const std::exception&) {
+                        OutputHandler::cetakError("Argumen CETAK_LOG harus berupa angka.");
+                        continue;
+                    }
+                }
                 if (logGame) {
                     if (top > 0) {
                         auto logs = logGame->getLogs(top);
@@ -273,7 +278,6 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                         }
                     }
                 }
-                awalGiliran = false;
                 continue;
             }
 
@@ -286,6 +290,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                     actionService->gadaiProperti(*p);
                 }
                 awalGiliran = false;
+                adaAksiStateChange = true;
                 continue;
             }
 
@@ -294,6 +299,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                     actionService->tebusProperti(*p);
                 }
                 awalGiliran = false;
+                adaAksiStateChange = true;
                 continue;
             }
 
@@ -302,6 +308,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                     actionService->bangunProperti(*p);
                 }
                 awalGiliran = false;
+                adaAksiStateChange = true;
                 continue;
             }
 
@@ -323,6 +330,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                 if (pilih == 0) continue;
                 p->gunakanKartu(pilih - 1, *actionService, *deckSkill, true);
                 awalGiliran = false;
+                adaAksiStateChange = true;
                 continue;
             }
 
@@ -370,6 +378,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
 
                 actionService->movePlayerRelative(*p, dadu->getTotalNilaiDadu());
                 sudahLemparDadu = true;
+                adaAksiStateChange = true;
                 break;
             }
 
@@ -382,8 +391,15 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                     OutputHandler::cetakError("Format: ATUR_DADU X Y");
                     continue;
                 }
-                int x = std::stoi(tok[1]);
-                int y = std::stoi(tok[2]);
+                int x = 0;
+                int y = 0;
+                try {
+                    x = std::stoi(tok[1]);
+                    y = std::stoi(tok[2]);
+                } catch (const std::exception&) {
+                    OutputHandler::cetakError("Nilai dadu harus berupa angka 1-6.");
+                    continue;
+                }
                 if (x < 1 || x > 6 || y < 1 || y > 6) {
                     OutputHandler::cetakError("Nilai dadu harus 1-6.");
                     continue;
@@ -427,6 +443,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
 
                 actionService->movePlayerRelative(*p, dadu->getTotalNilaiDadu());
                 sudahLemparDadu = true;
+                adaAksiStateChange = true;
                 break;
             }
 
@@ -434,6 +451,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
                 if (p->getStatus() == StatusPemain::JAILED) {
                     if (configData && p->getSaldo() >= configData->getDendaPenjara()) {
                         managerPenjara->escapeByFine(*p, *actionService);
+                        adaAksiStateChange = true;
                         // Giliran berlanjut (boleh lempar dadu)
                     } else {
                         OutputHandler::cetakError("Uang tidak cukup untuk bayar denda penjara.");
@@ -445,7 +463,7 @@ bool GameEngine::startTurn(Pemain* p, int currentTurn, int& doubleCount) {
             }
 
             if (cmd == "SIMPAN") {
-                if (!awalGiliran) {
+                if (!awalGiliran || sudahLemparDadu || adaAksiStateChange) {
                     OutputHandler::cetakError("Tidak bisa menyimpan game di tengah-tengah giliran!");
                     continue;
                 }
