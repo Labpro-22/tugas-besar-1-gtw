@@ -37,6 +37,7 @@ private :
     Dadu* dadu;
     ManagerPenjara* managerPenjara;
     ManagerProperti* managerProperti;
+    ManagerFestival* managerFestival;
     PlayerActionService* actionService;
     
     // Turn Management (dari TurnController)
@@ -79,6 +80,9 @@ public :
 
     ManagerProperti* getManagerProperti() const { return managerProperti; }
     void setManagerProperti(ManagerProperti* manager) { this->managerProperti = manager; }
+
+    ManagerFestival* getManagerFestival() const { return managerFestival; }
+    void setManagerFestival(ManagerFestival* manager ) { this->managerFestival = manager; }
 
     PlayerActionService* getActionService() const { return actionService; }
     void setActionService(PlayerActionService* service) { this->actionService = service; }

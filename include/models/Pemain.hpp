@@ -72,4 +72,6 @@ public:
     void setKartuDiTangan(const std::vector<KartuKemampuanSpesial*>& kartu) {
         kartuDiTangan = kartu;
     }
+    //helper
+    std::string getStatusString();
 };

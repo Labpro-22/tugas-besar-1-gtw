@@ -107,3 +107,15 @@ void Pemain::hapusAset(Properti* p){
         }
     }
 }
+string Pemain::getStatusString() {
+    switch (status) {
+    case StatusPemain::ACTIVE:
+        return "ACTIVE";
+    case StatusPemain::JAILED:
+        return "JAILED";
+    case StatusPemain::BANKRUPT:
+        return "BANKRUPT";
+    default:
+        return "ACTIVE";
+    }
+}

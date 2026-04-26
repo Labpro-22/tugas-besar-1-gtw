@@ -38,4 +38,7 @@ public:
     int getHargaSewaRailroad(int jumlah);
 
     ~ManagerProperti();
+
+    const std::map<std::string, Properti*>& getDaftarProperti() { return daftarProperti; }
+    int hitungJumlahProperti() { return daftarProperti.size(); }
 };
