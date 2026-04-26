@@ -14,13 +14,25 @@ ManagerTransaksi::ManagerTransaksi(LogTransaksiGame* log, std::vector<Pemain*>* 
 void ManagerTransaksi::beriSemuaAset(Pemain* asal, Pemain* tujuan) {
     std::vector<PetakProperti*> asetBakalDipindah = asal->getAsetPemain();
     if (tujuan) {
-        *tujuan += asal->getSaldo();
+        int saldoAsal = asal->getSaldo();
+        if (saldoAsal > 0) {
+            *tujuan += saldoAsal;
+            *asal -= saldoAsal;
+        }
         for (auto aset : asetBakalDipindah) {
+            PetakProperti::StatusProperti statusLama = aset->getStatus();
             asal->hapusAset(aset);
             aset->setPemilik(tujuan);
+            // Sesuai spesifikasi: aset tergadai tetap tergadai saat dialihkan ke kreditor pemain.
+            aset->setStatus(statusLama);
             tujuan->tambahAset(aset);
         }
     } else {
+        int saldoAsal = asal->getSaldo();
+        if (saldoAsal > 0) {
+            // Kas sisa pemain bangkrut ke Bank hilang dari peredaran.
+            *asal -= saldoAsal;
+        }
         ManagerLelang lelang(this);
         for (auto aset : asetBakalDipindah) {
             asal->hapusAset(aset);

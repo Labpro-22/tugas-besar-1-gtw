@@ -28,6 +28,10 @@ int Likuidasi::totalLikuidasiSeluruhAsetGadai (Pemain *p) {
     int res = p->getSaldo();
 
     for (auto aset : p->getAsetPemain()) {
+        if (aset->getStatus() != PetakProperti::StatusProperti::OWNED) {
+            // Properti yang sudah MORTGAGED tidak bisa digadai lagi.
+            continue;
+        }
         res += aset->getNilaiGadai();
 
         auto street = dynamic_cast<PetakLahan*>(aset);
@@ -44,6 +48,10 @@ int Likuidasi::totalLikuidasiSeluruhAsetJual (Pemain *p) {
     int res = p->getSaldo();
 
     for (auto aset : p->getAsetPemain()) {
+        if (aset->getStatus() != PetakProperti::StatusProperti::OWNED) {
+            // Sesuai spesifikasi, properti MORTGAGED tidak bisa langsung dijual (harus tebus dulu).
+            continue;
+        }
         res += aset->getConfigProperti()->getHargaLahan();
 
         auto street = dynamic_cast<PetakLahan*>(aset);
