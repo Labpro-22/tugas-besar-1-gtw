@@ -20,52 +20,111 @@ GameEngine::~GameEngine() {
 }
 
 void GameEngine::startGame() {
-    // Implementasi logic game utama
+    // Jika game di-load, urutan pemain sudah di-set dari file save.
+    // Hanya random saat urutan belum tersedia/invalid.
+    if (urutanPemain.size() != listPemain.size() || urutanPemain.empty()) {
+        randomizeTurn();
+        currentTurnIndex = 0;
+    } else if (currentTurnIndex < 0 || currentTurnIndex >= static_cast<int>(urutanPemain.size())) {
+        currentTurnIndex = 0;
+    }
 
-    // acak urutan playernya
-    randomizeTurn();
+    if (currentGlobalTurn < 1) {
+        currentGlobalTurn = 1;
+    }
 
-    // iterasi sebanyak jumlah turn
-    for (currentGlobalTurn = 1; currentGlobalTurn <= maxTurn; currentGlobalTurn++) {
+    auto jalankanTurnPemain = [&](Pemain* player) -> bool {
+        if (player->getStatus() == StatusPemain::BANKRUPT) {
+            return false;
+        }
 
-        // jalanin turn buat tiap player
-        for (auto player : urutanPemain) {
+        if (SelesaiGame::sisaSatuOrang(listPemain)) {
+            SelesaiGame::tampilPanelSelesaiKarenaBangkrut();
+            SelesaiGame::tampilkanPemenang(player);
+            return true;
+        }
 
-            if (player->getStatus() == StatusPemain::BANKRUPT) { // yang bangkrut di skip
+        bool extraTurn = false;
+        int doubleCount = 0;
+        do {
+            extraTurn = startTurn(player, currentGlobalTurn, doubleCount);
+
+            // Habis turn selesai normalnya player pindah tempat -> jalankan onLanded.
+            if (player->getStatus() == StatusPemain::ACTIVE ||
+                (player->getStatus() == StatusPemain::JAILED && doubleCount == 3)) {
+                Petak* diTempati = papanPermainan->getPetak(static_cast<int>(player->getPosisi()));
+                if (diTempati) {
+                    diTempati->onLanded(*player, *actionService);
+                }
+            }
+
+            if (player->getStatus() == StatusPemain::BANKRUPT) {
+                break;
+            }
+        } while (extraTurn && doubleCount < 3);
+
+        return SelesaiGame::sisaSatuOrang(listPemain);
+    };
+
+    // Mode bankruptcy (maxTurn invalid): lanjut sampai sisa 1 pemain aktif.
+    if (maxTurn < 1) {
+        while (true) {
+            if (SelesaiGame::sisaSatuOrang(listPemain)) {
+                break;
+            }
+
+            int pemainAktifPadaRonde = 0;
+            for (size_t langkah = 0; langkah < urutanPemain.size(); ++langkah) {
+                int idx = (currentTurnIndex + static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+                Pemain* player = urutanPemain[idx];
+                if (player->getStatus() == StatusPemain::BANKRUPT) {
+                    continue;
+                }
+
+                pemainAktifPadaRonde++;
+                currentTurnIndex = idx;
+                if (jalankanTurnPemain(player)) {
+                    SelesaiGame::tampilPanelSelesaiKarenaBangkrut();
+                    SelesaiGame::tampilkanPemenang(SelesaiGame::getPemenang(listPemain));
+                    return;
+                }
+            }
+
+            if (pemainAktifPadaRonde == 0) {
+                break;
+            }
+            currentGlobalTurn++;
+        }
+
+        SelesaiGame::tampilPanelSelesaiKarenaBangkrut();
+        SelesaiGame::tampilkanPemenang(SelesaiGame::getPemenang(listPemain));
+        return;
+    }
+
+    // Mode normal max turn.
+    while (currentGlobalTurn <= maxTurn) {
+        for (size_t langkah = 0; langkah < urutanPemain.size(); ++langkah) {
+            int idx = (currentTurnIndex + static_cast<int>(langkah)) % static_cast<int>(urutanPemain.size());
+            Pemain* player = urutanPemain[idx];
+            if (player->getStatus() == StatusPemain::BANKRUPT) {
                 continue;
             }
 
-            if (SelesaiGame::sisaSatuOrang(listPemain)) { // kalo di tengah2 turn udah tinggal sisa satu orang, game langsung selesai
+            currentTurnIndex = idx;
+            if (jalankanTurnPemain(player)) {
                 SelesaiGame::tampilPanelSelesaiKarenaBangkrut();
-                SelesaiGame::tampilkanPemenang (player);
+                SelesaiGame::tampilkanPemenang(SelesaiGame::getPemenang(listPemain));
                 return;
             }
-
-
-            // player bisa pilih mau liat2 akta, atau liat2 properti dia sendiri, ato mau jalan, ato mau make kartu
-            bool extraTurn = false;
-            int doubleCount = 0;
-            do {
-                extraTurn = startTurn(player, currentGlobalTurn, doubleCount);
-
-                // habis turnya selesai normalnya player pindah tempat -> jalanin onlanded dari petak yang diinjek
-                if (player->getStatus() == StatusPemain::ACTIVE || 
-                    (player->getStatus() == StatusPemain::JAILED && doubleCount == 3)) { // if 3 doubles, they are jailed and move to jail
-                    Petak* diTempati = papanPermainan->getPetak((const int)player->getPosisi());
-                    diTempati->onLanded(*player, *actionService);
-                }
-                
-                if (player->getStatus() == StatusPemain::BANKRUPT) {
-                    break;
-                }
-            } while (extraTurn && doubleCount < 3);
         }
+
+        currentTurnIndex = (currentTurnIndex + 1) % static_cast<int>(urutanPemain.size());
+        currentGlobalTurn++;
     }
 
-    Pemain* pemenang = SelesaiGame::getPemenang (listPemain);
+    Pemain* pemenang = SelesaiGame::getPemenang(listPemain);
     SelesaiGame::tampilPanelSelesaiKarenaMaxTurn(maxTurn);
-    SelesaiGame::tampilkanPemenang (pemenang);
-
+    SelesaiGame::tampilkanPemenang(pemenang);
 }
 
 void GameEngine::randomizeTurn() {

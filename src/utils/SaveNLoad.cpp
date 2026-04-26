@@ -147,10 +147,6 @@ void SaveNLoad::loadGameState(GameEngine& game, string filename) {
             Petak* petak = game.getPapanPermainan()->getPetak(kode);
             if (auto prop = dynamic_cast<PetakProperti*>(petak)) {
                 
-                if (statusStr == "OWNED") prop->setStatus(PetakProperti::StatusProperti::OWNED);
-                else if (statusStr == "MORTGAGED") prop->setStatus(PetakProperti::StatusProperti::MORTGAGED);
-                else prop->setStatus(PetakProperti::StatusProperti::BANK);
-
                 if (pemilikStr != "BANK") {
                     Pemain* propOwner = nullptr;
                     for (Pemain* p : loadedPlayers) {
@@ -164,6 +160,10 @@ void SaveNLoad::loadGameState(GameEngine& game, string filename) {
                         propOwner->tambahAset(prop);
                     }
                 }
+                // Status harus diset setelah setPemilik(), karena setPemilik() mengubah status jadi OWNED.
+                if (statusStr == "OWNED") prop->setStatus(PetakProperti::StatusProperti::OWNED);
+                else if (statusStr == "MORTGAGED") prop->setStatus(PetakProperti::StatusProperti::MORTGAGED);
+                else prop->setStatus(PetakProperti::StatusProperti::BANK);
 
                 // Festival
                 if (game.getManagerFestival() && fdur > 0) {
@@ -179,8 +179,7 @@ void SaveNLoad::loadGameState(GameEngine& game, string filename) {
                         lahan->setJumlahBangunan(5); // Hotel = level 5
                     } else {
                         int nb = stoi(nBangunanStr);
-                        while (lahan->getJumlahBangunan() < nb && !lahan->punyaHotel()) {
-                        }
+                        lahan->setJumlahBangunan(nb);
                     }
                 }
             }
