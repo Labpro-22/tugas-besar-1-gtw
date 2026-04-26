@@ -1,3 +1,4 @@
+#include "views/OutputHandler.hpp"
 #include "models/Managers/ManagerPenjara.hpp"
 
 // ======================== ManagerPenjara ========================
@@ -15,11 +16,11 @@ void ManagerPenjara::tryEscapeByDouble(Pemain &p, Dadu& d, PlayerActionService a
 
 void ManagerPenjara::escapeByFine(Pemain &p, PlayerActionService actionService) {
     actionService.transferMoney(&p, nullptr, actionService.getConfig()->getDendaPenjara());
-    std::cout << p.getUsername() << " membayar " << actionService.getConfig()->getDendaPenjara() << " untuk keluar dari penjara!\n";
+    OutputHandler::cetakAksi(p.getUsername(), "membayar " + std::to_string(actionService.getConfig()->getDendaPenjara()) + " untuk keluar dari penjara!");
     p.setStatus(StatusPemain::ACTIVE);
 }
 
 void ManagerPenjara::paksaBayar(Pemain &p, PlayerActionService actionService) {
-    std::cout << p.getUsername() << " dipaksa bayar karena sudah berada di penjara selama 3 turn!\n";
+    OutputHandler::cetakAksi(p.getUsername(), "dipaksa bayar denda karena sudah berada di penjara selama 3 turn!");
     escapeByFine(p, actionService);
 }

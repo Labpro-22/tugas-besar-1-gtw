@@ -16,7 +16,7 @@
 #include "../models/Kartu/Kartu.hpp"
 #include "../models/Kartu/DeckKartu.hpp"
 #include "../utils/LogTransaksiGame.hpp"
-#include "../views/Formatter.hpp"
+#include "../views/OutputHandler.hpp"
 #include "BangkrutDanEndGame.hpp"
 using namespace std;
 

@@ -4,6 +4,8 @@
 #include "models/Pemain.hpp"
 #include "models/Petak/PetakProperti.hpp"
 #include "models/Papan.hpp"
+#include "views/InputHandler.hpp"
+#include "views/OutputHandler.hpp"
 #include "utils/LogTransaksiGame.hpp"
 #include "utils/NimonspoliException.hpp"
 #include <iostream>
@@ -42,19 +44,19 @@ void PlayerActionService::movePlayerRelative(Pemain& p, int n) {
     int totalPetak = papan ? papan->getTotalPetak() : 40;
     int posiBaru = ((p.getPosisi() + n) % totalPetak + totalPetak) % totalPetak;
     p.setPosisi(posiBaru);
-    std::cout << p.getUsername() << " bergerak ke petak " << posiBaru << ".\n";
+    OutputHandler::cetakAksi(p.getUsername(), "bergerak ke petak " + std::to_string(posiBaru));
     logAksi(p, "GERAK", "pindah ke indeks " + std::to_string(posiBaru));
 }
 
 void PlayerActionService::teleportByInput(Pemain& p, const std::string& kodeOrIndeks) {
     // stub: validasi kode petak di Papan akan dilakukan saat integrasi
-    std::cout << p.getUsername() << " teleport ke \"" << kodeOrIndeks << "\".\n";
+    OutputHandler::cetakAksi(p.getUsername(), "teleport ke " + kodeOrIndeks);
     logAksi(p, "TELEPORT", kodeOrIndeks);
 }
 
 void PlayerActionService::moveToNearestStation(Pemain& p) {
     // stub: MovementController::findNearestStation() saat integrasi
-    std::cout << p.getUsername() << " bergerak ke stasiun terdekat.\n";
+    OutputHandler::cetakAksi(p.getUsername(), "bergerak ke stasiun terdekat.");
     logAksi(p, "GERAK", "stasiun terdekat");
 }
 
@@ -62,35 +64,30 @@ void PlayerActionService::sendToJail(Pemain& p) {
     // stub: ManagerPenjara::masukkanKePenjara() saat integrasi
     p.setStatus(StatusPemain::JAILED);
     p.resetPercobaanPenjara();
-    std::cout << p.getUsername() << " masuk penjara!\n";
+    OutputHandler::cetakAksi(p.getUsername(), "masuk penjara!");
     logAksi(p, "PENJARA", "masuk penjara");
 }
 
 void PlayerActionService::escapeFromJailByCard(Pemain& p) {
     p.setStatus(StatusPemain::ACTIVE);
     p.resetPercobaanPenjara();
-    std::cout << p.getUsername() << " bebas dari penjara (kartu).\n";
+    OutputHandler::cetakAksi(p.getUsername(), "bebas dari penjara (kartu).");
     logAksi(p, "PENJARA", "bebas via kartu");
 }
 
 void PlayerActionService::jailOpponent(Pemain& pemain) {
-    std::cout << "Pilih pemain yang ingin dipenjara:\n";
+    OutputHandler::cetakPesan("Pilih pemain yang ingin dipenjara:");
     std::vector<Pemain*> aktif;
     for (Pemain* p : *daftarPemain) {
         if (p != &pemain && p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
     }
     if (aktif.empty()) {
-        std::cout << "Tidak ada pemain lain yang aktif.\n";
+        OutputHandler::cetakError("Tidak ada pemain lain yang aktif.");
         return;
     }
     for (size_t i = 0; i < aktif.size(); ++i)
-        std::cout << "  " << (i+1) << ". " << aktif[i]->getUsername() << "\n";
-    int pilihan = 0;
-    while (pilihan < 1 || pilihan > static_cast<int>(aktif.size())) {
-        std::cout << "Pilih (1-" << aktif.size() << "): ";
-        std::cin >> pilihan;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
+        OutputHandler::cetakPesan("  " + std::to_string(i+1) + ". " + aktif[i]->getUsername());
+    int pilihan = InputHandler::promptAngka("Pilih (1-" + std::to_string(aktif.size()) + "): ", 1, aktif.size());
     sendToJail(*aktif[pilihan - 1]);
     logAksi(pemain, "KARTU", "PenjaraKanCard " + aktif[pilihan-1]->getUsername());
 }
@@ -114,45 +111,35 @@ void PlayerActionService::demolishOpponentProperty(Pemain& pemain) {
         if (p != &pemain && p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
     }
     if (aktif.empty()) {
-        std::cout << "Tidak ada pemain lain yang aktif.\n";
+        OutputHandler::cetakError("Tidak ada pemain lain yang aktif.");
         return;
     }
 
-    std::cout << "Pilih pemain yang propertinya ingin dihancurkan:\n";
+    OutputHandler::cetakPesan("Pilih pemain yang propertinya ingin dihancurkan:");
     for (size_t i = 0; i < aktif.size(); ++i)
-        std::cout << "  " << (i+1) << ". " << aktif[i]->getUsername() << "\n";
-    int pilihanPemain = 0;
-    while (pilihanPemain < 1 || pilihanPemain > static_cast<int>(aktif.size())) {
-        std::cout << "Pilih (1-" << aktif.size() << "): ";
-        std::cin >> pilihanPemain;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
+        OutputHandler::cetakPesan("  " + std::to_string(i+1) + ". " + aktif[i]->getUsername());
+    int pilihanPemain = InputHandler::promptAngka("Pilih (1-" + std::to_string(aktif.size()) + "): ", 1, aktif.size());
     Pemain* target = aktif[pilihanPemain - 1];
 
     std::vector<PetakLahan*> punyaBangunan = managerProperti->getPropertiBisaDihancurkan(target);
     
     if (punyaBangunan.empty()) {
-        std::cout << target->getUsername() << " tidak punya properti Lahan dengan bangunan\n";
+        OutputHandler::cetakError(target->getUsername() + " tidak punya properti Lahan dengan bangunan");
         return;
     }
 
-    std::cout << "Pilih properti yang bangunannya ingin dihancurkan:\n";
+    OutputHandler::cetakPesan("Pilih properti yang bangunannya ingin dihancurkan:");
     for (size_t i = 0; i < punyaBangunan.size(); ++i) {
         PetakLahan* s = punyaBangunan[i];
-        std::cout << "  " << (i+1) << ". " << s->getNama() << " (" << s->getKode() << ")" << " — " << (s->punyaHotel() ? "Hotel" : std::to_string(s->getJumlahBangunan()) + " rumah") << "\n";
+        OutputHandler::cetakPesan("  " + std::to_string(i+1) + ". " + s->getNama() + " (" + s->getKode() + ") — " + (s->punyaHotel() ? "Hotel" : std::to_string(s->getJumlahBangunan()) + " rumah"));
     }
 
-    int pilihanProperti = 0;
-    while (pilihanProperti < 1 || pilihanProperti > static_cast<int>(punyaBangunan.size())) {
-        std::cout << "Pilih (1-" << punyaBangunan.size() << "): ";
-        std::cin >> pilihanProperti;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
+    int pilihanProperti = InputHandler::promptAngka("Pilih (1-" + std::to_string(punyaBangunan.size()) + "): ", 1, punyaBangunan.size());
     PetakLahan* dipilih = punyaBangunan[pilihanProperti - 1];
 
     int jumlahSebelum = managerProperti->hancurkanSemuaBangunan(dipilih);
 
-    std::cout << "[DemolitionCard] Semua bangunan (" << jumlahSebelum << (jumlahSebelum == 5 ? " — hotel" : " rumah") << ") di " << dipilih->getNama() << " milik " << target->getUsername() << " telah dihancurkan.\n";
+    OutputHandler::cetakEfekKartu("DemolitionCard", "Semua bangunan (" + std::to_string(jumlahSebelum) + (jumlahSebelum == 5 ? " — hotel" : " rumah") + ") di " + dipilih->getNama() + " milik " + target->getUsername() + " telah dihancurkan.");
     logAksi(pemain, "KARTU", "DemolitionCard " + dipilih->getKode() + " milik " + target->getUsername());
 }
 
@@ -167,7 +154,7 @@ void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
         if (jarak > 0) kandidat.push_back(p);
     }
     if (kandidat.empty()) {
-        std::cout << "Tidak ada pemain aktif di depan kamu.\n";
+        OutputHandler::cetakError("Tidak ada pemain aktif di depan kamu.");
         return;
     }
 
@@ -177,10 +164,10 @@ void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
         int jb = (b->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
         return ja < jb;
     });
-    std::cout << "Pilih pemain yang ingin ditarik ke posisi kamu (petak " << posiSaya << "):\n";
+    OutputHandler::cetakPesan("Pilih pemain yang ingin ditarik ke posisi kamu (petak " + std::to_string(posiSaya) + "):");
     for (size_t i = 0; i < kandidat.size(); ++i) {
         int jarak = (kandidat[i]->getPosisi() - posiSaya + TOTAL_PETAK) % TOTAL_PETAK;
-        std::cout << "  " << (i+1) << ". " << kandidat[i]->getUsername() << " (petak " << kandidat[i]->getPosisi() << ", jarak " << jarak << ")\n";
+        OutputHandler::cetakPesan("  " + std::to_string(i+1) + ". " + kandidat[i]->getUsername() + " (petak " + std::to_string(kandidat[i]->getPosisi()) + ", jarak " + std::to_string(jarak) + ")");
     }
     int pilihan = 0;
     while (pilihan < 1 || pilihan > static_cast<int>(kandidat.size())) {
@@ -189,7 +176,7 @@ void PlayerActionService::pullPlayerAhead(Pemain& pemain) {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     Pemain* target = kandidat[pilihan - 1];
-    std::cout << target->getUsername() << " ditarik ke posisi " << pemain.getUsername() << " (petak " << posiSaya << ").\n";
+    OutputHandler::cetakAksi(target->getUsername(), "ditarik ke posisi " + pemain.getUsername() + " (petak " + std::to_string(posiSaya) + ")");
     target->setPosisi(posiSaya);
     // TODO (integrasi): papan->getPetak(posiSaya)->onLanded(*target, *this)
     logAksi(pemain, "KARTU", "LassoCard : tarik " + target->getUsername() + " ke petak " + std::to_string(posiSaya));
@@ -201,7 +188,7 @@ void PlayerActionService::rotateAllHandCards(Pemain& pemain) {
         if (p->getStatus() == StatusPemain::ACTIVE) aktif.push_back(p);
     }
     if (aktif.size() < 2) {
-        std::cout << "Tidak cukup pemain untuk rotasi kartu.\n";
+        OutputHandler::cetakError("Tidak cukup pemain untuk rotasi kartu.");
         return;
     }
     // simpan hand pemain terakhir sebagai buffer
@@ -211,13 +198,13 @@ void PlayerActionService::rotateAllHandCards(Pemain& pemain) {
         aktif[i]->setKartuDiTangan(aktif[i - 1]->getKartuDiTangan());
     }
     aktif[0]->setKartuDiTangan(buffer);
-    std::cout << "[RotasiKartuCard] Kartu tangan semua pemain telah dirotasi.\n";
+    OutputHandler::cetakEfekKartu("RotasiKartuCard", "Kartu tangan semua pemain telah dirotasi.");
     logAksi(pemain, "KARTU", "RotasiKartuCard — rotasi " + std::to_string(aktif.size()) + " pemain");
 }
 
 void PlayerActionService::reverseTurnOrder(Pemain& pemain) {
     arahNormal = !arahNormal;
-    std::cout << "[ReverseCard] Urutan giliran kini " << (arahNormal ? "normal (searah jarum jam).\n" : "terbalik!\n");
+    OutputHandler::cetakEfekKartu("ReverseCard", std::string("Urutan giliran kini ") + (arahNormal ? "normal (searah jarum jam)." : "terbalik!"));
     logAksi(pemain, "KARTU", arahNormal ? "ReverseCard (normal)" : "ReverseCard (terbalik)");
 }
 

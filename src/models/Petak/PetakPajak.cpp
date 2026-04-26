@@ -1,7 +1,9 @@
-#include "../../../include/models/Petak/PetakPajak.hpp"
-#include "../../../include/models/Pemain.hpp"
-#include "../../../include/models/PlayerActionService.hpp"
-#include "../../../include/core/BangkrutDanEndGame.hpp"
+#include "models/Petak/PetakPajak.hpp"
+#include "models/Pemain.hpp"
+#include "models/PlayerActionService.hpp"
+#include "core/BangkrutDanEndGame.hpp"
+#include "views/OutputHandler.hpp"
+#include "views/InputHandler.hpp"
 
 PetakPajak::PetakPajak(int indeks, const std::string& kode, const std::string& nama, ConfigData* konfigurasi)
     : PetakAksi(indeks, kode, nama), config(konfigurasi) {
@@ -13,24 +15,9 @@ void PetakPajak::onLanded(Pemain& pemain, PlayerActionService& svc) {
         svc.transferMoney(&pemain, nullptr, config->getPbmFlat());
     }
     else {
-        cout << "Kamu mendarat di Pajak Penghasilan (PPH)!\n";
-        cout << "Pilih opsi pembayaran pajak: \n";
-        cout << "1. Bayar flat M" << config->getPphFlat() << " \n";
-        cout << "2. Bayar " << config->getPphPersen() << "\% dari total kekayaan\n";
-        cout << "(Pilih sebelum menghitung kekayaan!\n)";
+        int pilihan = InputHandler::mintaPilihanPajak(config->getPphFlat(), config->getPphPersen());
 
-        string input;
-        while (true) {
-            cout << "Pilihan(1/2): ";
-            getline(cin, input);
-            if (input != "1" && input != "2") {
-                cout << "Masukan tidak valid\n";
-            } else {
-                break;
-            }
-        }
-
-        if (input == "1") {
+        if (pilihan == 1) {
             svc.transferMoney (&pemain, nullptr, config->getPphFlat());
         }
         else {
@@ -39,3 +26,4 @@ void PetakPajak::onLanded(Pemain& pemain, PlayerActionService& svc) {
         }
     }
 }
+

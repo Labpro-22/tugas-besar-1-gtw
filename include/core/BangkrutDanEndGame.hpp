@@ -7,7 +7,7 @@
 #include "../models/Pemain.hpp"
 #include "../models/Petak/PetakProperti.hpp"
 #include "../models/Petak/PetakLahan.hpp"
-#include "../views/Formatter.hpp"
+#include "../views/OutputHandler.hpp"
 using namespace std;
 
 class Kebangkrutan {

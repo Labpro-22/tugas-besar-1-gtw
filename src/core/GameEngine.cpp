@@ -1,4 +1,6 @@
 #include "../../include/core/GameEngine.hpp"
+#include "../../include/utils/NimonspoliException.hpp"
+#include "../../include/views/InputHandler.hpp"
 
 GameEngine::GameEngine() 
     : configData(nullptr), papanPermainan(nullptr), logGame(nullptr), deckKartu(nullptr), 
@@ -66,6 +68,7 @@ void GameEngine::randomizeTurn() {
 void GameEngine::startTurn(Pemain* p, int currentTurn) {
     // isi if else nya bisa diisi kalo udah ada command
     while (true) {
+        try {
         bool awalGiliran = true;
         if (1) { // atur dadu manual
             int a, b; // ini stub
@@ -103,30 +106,30 @@ void GameEngine::startTurn(Pemain* p, int currentTurn) {
             int kode = 0; // ini masih stub
             PetakProperti *inginDicetak = managerProperti->getProperti(0);
             if (configData) {
-                Formatter::cetakAktaProperti(inginDicetak, *configData);
+                OutputHandler::cetakAktaProperti(inginDicetak, *configData);
             }
         }
         else if (1) { // cetak papan
-            Formatter::cetakPapan(*papanPermainan, listPemain, currentTurn, maxTurn);
+            OutputHandler::cetakPapan(*papanPermainan, listPemain, currentTurn, maxTurn);
         }
         else if (1) { // cetak properti
             if (configData) {
-                Formatter::cetakPropertiPemain(p, *configData);
+                OutputHandler::cetakPropertiPemain(p, *configData);
             }
         }
         else if (1) { // gadai
             if (configData) {
-                Formatter::tampilkanPropertiYangBisaDigadai(p, *configData);
+                OutputHandler::tampilkanPropertiYangBisaDigadai(p, *configData);
             }
         }
         else if (1) { // tebus
             if (configData) {
-                Formatter::tampilkanPropertiYangBisaDitebus(p, *configData);
+                OutputHandler::tampilkanPropertiYangBisaDitebus(p, *configData);
             }
         }
         else if (1) { // bangun
             if (configData) {
-                Formatter::tampilkanPropertiYangBisaDibangun(p, *managerProperti, *configData);
+                OutputHandler::tampilkanPropertiYangBisaDibangun(p, *managerProperti, *configData);
             }
         }
         else if (1) { // make kartu
@@ -141,5 +144,9 @@ void GameEngine::startTurn(Pemain* p, int currentTurn) {
             }
         }
         awalGiliran = false;
+        } catch (const NimonspoliException& e) {
+            OutputHandler::cetakError(e.what());
+            OutputHandler::cetakPesan("Silakan coba aksi lain.");
+        }
     }
 }

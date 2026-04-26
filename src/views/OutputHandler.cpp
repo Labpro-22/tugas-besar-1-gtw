@@ -1,4 +1,4 @@
-#include "../../include/views/Formatter.hpp"
+#include "../../include/views/OutputHandler.hpp"
 #include "../../include/models/Pemain.hpp"
 #include "../../include/models/Petak/Petak.hpp"
 #include "../../include/models/Petak/PetakProperti.hpp"
@@ -10,7 +10,7 @@
 #include "../../include/models/ConfigData.hpp"
 #include "../../include/models/Papan.hpp"
 
-std::string Formatter::getColorCode(const std::string& warna) {
+std::string OutputHandler::getColorCode(const std::string& warna) {
     if (warna == "COKLAT") return "\033[38;5;94m";          // Brown
     if (warna == "BIRU_MUDA") return "\033[38;5;51m";       // Cyan
     if (warna == "MERAH_MUDA" || warna == "PINK") return "\033[38;5;205m";  // Magenta
@@ -23,11 +23,11 @@ std::string Formatter::getColorCode(const std::string& warna) {
     return "\033[0m";  // Default
 }
 
-std::string Formatter::resetColor() {
+std::string OutputHandler::resetColor() {
     return "\033[0m";
 }
 
-std::string Formatter::getBangunanSimbol(int level) {
+std::string OutputHandler::getBangunanSimbol(int level) {
     switch(level) {
         case 0: return "  ";
         case 1: return "^";
@@ -39,7 +39,7 @@ std::string Formatter::getBangunanSimbol(int level) {
     }
 }
 
-const PropertiConfig* Formatter::findPropertiConfig(PetakProperti* properti, const ConfigData& config) {
+const PropertiConfig* OutputHandler::findPropertiConfig(PetakProperti* properti, const ConfigData& config) {
     if (!properti) return nullptr;
     
     for (const auto& pair : config.getPropertiMap()) {
@@ -50,7 +50,7 @@ const PropertiConfig* Formatter::findPropertiConfig(PetakProperti* properti, con
     return nullptr;
 }
 
-void Formatter::cetakAktaProperti(PetakProperti* properti, const ConfigData& config) {
+void OutputHandler::cetakAktaProperti(PetakProperti* properti, const ConfigData& config) {
     if (!properti) {
         std::cout << "PetakProperti tidak valid.\n";
         return;
@@ -116,7 +116,7 @@ void Formatter::cetakAktaProperti(PetakProperti* properti, const ConfigData& con
     std::cout << "+================================+\n\n";
 }
 
-void Formatter::cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
+void OutputHandler::cetakPapan(const Papan& papan, const std::vector<Pemain*>& daftarPemain, 
                           int currentTurn, int maxTurn) {
     if (papan.getTotalPetak() == 0) {
         std::cout << "Papan belum diinisialisasi.\n";
@@ -146,7 +146,7 @@ void Formatter::cetakPapan(const Papan& papan, const std::vector<Pemain*>& dafta
     std::cout << "\n";
 }
 
-void Formatter::cetakPropertiPemain(const Pemain* pemain, const ConfigData& config) {
+void OutputHandler::cetakPropertiPemain(const Pemain* pemain, const ConfigData& config) {
     if (!pemain) {
         std::cout << "Pemain tidak valid.\n";
         return;
@@ -213,7 +213,7 @@ void Formatter::cetakPropertiPemain(const Pemain* pemain, const ConfigData& conf
     std::cout << "\nTotal kekayaan properti: M" << totalKekayaan << "\n\n";
 }
 
-void Formatter::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigData& config) {
+void OutputHandler::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigData& config) {
     if (!pemain) {
         std::cout << "Pemain tidak valid.\n";
         return;
@@ -274,7 +274,7 @@ void Formatter::tampilkanPropertiYangBisaDigadai(Pemain* pemain, const ConfigDat
     std::cout << "\n";
 }
 
-void Formatter::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigData& config) {
+void OutputHandler::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigData& config) {
     if (!pemain) {
         std::cout << "Pemain tidak valid.\n";
         return;
@@ -316,7 +316,7 @@ void Formatter::tampilkanPropertiYangBisaDitebus(Pemain* pemain, const ConfigDat
     std::cout << "Uang kamu saat ini: M" << pemain->getSaldo() << "\n\n";
 }
 
-void Formatter::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerProperti& manager, 
+void OutputHandler::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerProperti& manager, 
                                                   const ConfigData& config) {
     if (!pemain) {
         std::cout << "Pemain tidak valid.\n";
@@ -389,4 +389,35 @@ void Formatter::tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerPropert
     }
     
     std::cout << "Uang kamu saat ini : M" << pemain->getSaldo() << "\n\n";
+}
+
+
+
+
+void OutputHandler::cetakPesan(const std::string& pesan) {
+    std::cout << pesan << "\n";
+}
+
+void OutputHandler::cetakError(const std::string& errorMsg) {
+    std::cout << "[ERROR] " << errorMsg << "\n";
+}
+
+void OutputHandler::cetakMendaratDiPetak(const std::string& namaPemain, const std::string& namaPetak) {
+    std::cout << "\n" << namaPemain << " mendarat di petak " << namaPetak << "!\n";
+}
+
+void OutputHandler::cetakEfekKartu(const std::string& namaKartu, const std::string& pesan) {
+    std::cout << "[" << namaKartu << "] " << pesan << "\n";
+}
+
+void OutputHandler::cetakTransaksi(const std::string& pembayar, int jumlah, const std::string& penerima) {
+    if (penerima.empty() || penerima == "Bank") {
+        std::cout << pembayar << " membayar M" << jumlah << " ke Bank.\n";
+    } else {
+        std::cout << pembayar << " membayar M" << jumlah << " ke " << penerima << ".\n";
+    }
+}
+
+void OutputHandler::cetakAksi(const std::string& namaPemain, const std::string& aksi) {
+    std::cout << namaPemain << " " << aksi << "\n";
 }

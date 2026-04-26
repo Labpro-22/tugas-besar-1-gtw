@@ -1,3 +1,4 @@
+#include "views/OutputHandler.hpp"
 #include "models/Managers/ManagerTransaksi.hpp"
 #include "models/Pemain.hpp"
 #include "core/BangkrutDanEndGame.hpp"
@@ -51,11 +52,11 @@ void ManagerTransaksi::collectFromAllPlayers(Pemain& penerima, int jumlahPerOran
         if (p->getStatus() != StatusPemain::ACTIVE) continue;
         try {
             transferMoney(p, &penerima, jumlahPerOrang);
-            std::cout << p->getUsername() << " membayar M" << jumlahPerOrang << " ke " << penerima.getUsername() << ".\n";
+            OutputHandler::cetakTransaksi(p->getUsername(), jumlahPerOrang, penerima.getUsername());
         } catch (UangTidakCukupException&) {
             int sisa = p->getSaldo();
             transferMoney(p, &penerima, sisa);
-            std::cout << p->getUsername() << " hanya bisa membayar M" << sisa << ".\n";
+            OutputHandler::cetakPesan(p->getUsername() + " hanya bisa membayar M" + std::to_string(sisa));
         } catch (NimonspoliException&) {
             // Sudah bangkrut, lewatkan
         }
@@ -68,7 +69,7 @@ void ManagerTransaksi::payToAllPlayers(Pemain& pembayar, int jumlahPerOrang) {
         if (p->getStatus() != StatusPemain::ACTIVE) continue;
         try {
             transferMoney(&pembayar, p, jumlahPerOrang);
-            std::cout << pembayar.getUsername() << " membayar M" << jumlahPerOrang << " ke " << p->getUsername() << ".\n";
+            OutputHandler::cetakTransaksi(pembayar.getUsername(), jumlahPerOrang, p->getUsername());
         } catch (UangTidakCukupException&) {
             throw; // Teruskan exception agar game loop tahu
         } catch (NimonspoliException&) {

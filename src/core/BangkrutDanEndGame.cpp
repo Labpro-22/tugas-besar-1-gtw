@@ -1,3 +1,4 @@
+#include "views/OutputHandler.hpp"
 #include "core/BangkrutDanEndGame.hpp"
 #include "models/ConfigData.hpp"
 const ConfigData* Likuidasi::config = nullptr;
@@ -9,7 +10,7 @@ void Kebangkrutan::declareBangkrut (Pemain *p) {
 }
 
 void Kebangkrutan::tampilkanBangkrut (Pemain *p) {
-    std::cout << p->getUsername() << " telah bangkrut dan dikeluarkan dari permainan\n";
+    OutputHandler::cetakPesan(p->getUsername() + " telah bangkrut dan dikeluarkan dari permainan");
 }
 
 // Likuidasi
@@ -56,10 +57,10 @@ int Likuidasi::totalLikuidasiSeluruhAsetJual (Pemain *p) {
 
 void Likuidasi::tampilkanPanelLikuidasi (Pemain *p, int harga) {
     if (config) {
-        Formatter::cetakPropertiPemain(p, *config);
-        std::cout << "Gunakan perintah JUAL atau GADAI untuk menjual atau menggadai properti ke Bank!\n";
+        OutputHandler::cetakPropertiPemain(p, *config);
+        OutputHandler::cetakPesan("Gunakan perintah JUAL atau GADAI untuk menjual atau menggadai properti ke Bank!");
         while (!bisaBayarLangsung(p, harga)) {
-            std::cout << "Uang masih tidak cukup! Gadaikan atau jual lagi propertimu!\n";
+            OutputHandler::cetakPesan("Uang masih tidak cukup! Gadaikan atau jual lagi propertimu!");
             // menerima command input dari user tapi harus jual atau gadai atau tebus (gunanya tebus buat beli gadai terus dijual beneran, biar totalnya nanti dapet duitnya lebih banyak)
 
         }
@@ -96,13 +97,13 @@ bool SelesaiGame::sisaSatuOrang (vector<Pemain*> listPemain) {
 }
 
 void SelesaiGame::tampilPanelSelesaiKarenaMaxTurn (int maxTurn) {
-    std::cout << "Permainan Selesai! Sudah mencapai " << maxTurn << " giliran!\n";
+    OutputHandler::cetakPesan("Permainan Selesai! Sudah mencapai " + std::to_string(maxTurn) + " giliran!");
 }
 
 void SelesaiGame::tampilPanelSelesaiKarenaBangkrut () {
-    std::cout << "Permainan Selesai! Semua pemain kecuali satu pemain bangkrut\n";
+    OutputHandler::cetakPesan("Permainan Selesai! Semua pemain kecuali satu pemain bangkrut");
 }
 
 void SelesaiGame::tampilkanPemenang (Pemain *p) {
-    std::cout << "Pemenang permainan ini adalah " << p->getUsername() << "\n";
+    OutputHandler::cetakPesan("Pemenang permainan ini adalah " + p->getUsername());
 }

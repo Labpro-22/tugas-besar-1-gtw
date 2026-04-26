@@ -1,31 +1,31 @@
+#include "views/OutputHandler.hpp"
 #include "models/Kartu/KartuKesempatan.hpp"
 #include "models/Pemain.hpp"
 #include "models/PlayerActionService.hpp"
 #include <iostream>
 
 void KartuPergiKeStasiunTerdekat::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "Kartu: \"Pergi ke stasiun terdekat.\"\n";
+    OutputHandler::cetakEfekKartu("Pergi ke stasiun terdekat", "Pemain bergerak ke stasiun terdekat.");
     svc.moveToNearestStation(pemain);
 }
 
 void KartuMundurTigaPetak::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "Kartu: \"Mundur 3 petak.\"\n";
+    OutputHandler::cetakEfekKartu("Mundur 3 petak", "Pemain mundur 3 petak.");
     // negatif = mundur
     svc.movePlayerRelative(pemain, -3);
 }
 
 void KartuMasukPenjara::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "Kartu: \"Masuk Penjara.\"\n";
+    OutputHandler::cetakEfekKartu("Masuk Penjara", "Pemain masuk penjara.");
     svc.sendToJail(pemain);
 }
 
 void KartuBebasPenjara::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
     if (pemain.getStatus() == StatusPemain::JAILED) {
-        std::cout << "Kartu: \"Bebas dari Penjara.\"\n";
-        std::cout << "Kamu dibebaskan dari penjara!\n";
+        OutputHandler::cetakEfekKartu("Bebas dari Penjara", "Kamu dibebaskan dari penjara!");
         svc.escapeFromJailByCard(pemain);
     } else {
-        std::cout << "Kartu: \"Bebas dari Penjara.\" (disimpan untuk digunakan nanti)\n";
+        OutputHandler::cetakEfekKartu("Bebas dari Penjara", "Kartu disimpan untuk digunakan nanti.");
         // kartu akan dikembalikan ke tangan
     }
     (void)svc;

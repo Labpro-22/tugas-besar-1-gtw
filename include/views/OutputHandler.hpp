@@ -19,7 +19,18 @@ class ConfigData;
 class ManagerProperti;
 class Papan;
 
-class Formatter {
+class OutputHandler {
+public:
+    static void cetakPesan(const std::string& pesan);
+    static void cetakError(const std::string& errorMsg);
+
+    // Specific Output Formats
+    static void cetakMendaratDiPetak(const std::string& namaPemain, const std::string& namaPetak);
+    static void cetakEfekKartu(const std::string& namaKartu, const std::string& pesan);
+    static void cetakTransaksi(const std::string& pembayar, int jumlah, const std::string& penerima = "");
+    static void cetakAksi(const std::string& namaPemain, const std::string& aksi);
+
+
 public :
     // Menampilkan akta kepemilikan dari suatu properti
     static void cetakAktaProperti(PetakProperti* properti, const ConfigData& config);
@@ -41,7 +52,7 @@ public :
     static void tampilkanPropertiYangBisaDibangun(Pemain* pemain, ManagerProperti& manager, 
                                                   const ConfigData& config);
     
-private:
+    private:
     // Helper function untuk mendapatkan warna ANSI untuk display
     static std::string getColorCode(const std::string& warna);
     static std::string resetColor();

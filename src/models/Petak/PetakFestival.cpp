@@ -3,8 +3,8 @@
 #include "models/Petak/PetakProperti.hpp"
 #include "models/Pemain.hpp"
 #include "models/PlayerActionService.hpp"
-#include <iostream>
-#include <limits>
+#include "views/InputHandler.hpp"
+#include "views/OutputHandler.hpp"
 
 
 
@@ -26,17 +26,7 @@ void PetakFestival::onLanded(Pemain& pemain, PlayerActionService& svc) {
         }
         std::cout << "\n";
     }
-    int pilihan = -1;
-    while (true) {
-        std::cout << "Pilih properti (1-" << aset.size() << "): ";
-        if (std::cin >> pilihan && pilihan >= 1 && pilihan <= static_cast<int>(aset.size())) {
-            break;
-        }
-        std::cout << "Input tidak valid. Coba lagi.\n";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    int pilihan = InputHandler::promptAngka("Pilih properti (1-" + std::to_string(aset.size()) + "): ", 1, aset.size());
     PetakProperti* target = aset[pilihan - 1];
     managerFestival->applyFestival(target);
     std::string detail = target->getKode() + " festival x" + std::to_string(managerFestival->getPengali(target)) + " durasi " + std::to_string(managerFestival->getSisaDurasi(target));

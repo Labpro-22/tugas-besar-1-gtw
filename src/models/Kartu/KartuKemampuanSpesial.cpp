@@ -1,3 +1,4 @@
+#include "views/OutputHandler.hpp"
 #include "models/Kartu/KartuKemampuanSpesial.hpp"
 #include "models/Pemain.hpp"
 #include "models/PlayerActionService.hpp"
@@ -7,7 +8,7 @@
 
 MoveCard::MoveCard(int langkah) : KartuKemampuanSpesial("MoveCard"), langkah(langkah) {}
 void MoveCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[MoveCard] Maju " << langkah << " petak.\n";
+    OutputHandler::cetakEfekKartu("MoveCard", "Maju " + std::to_string(langkah) + " petak.");
     svc.movePlayerRelative(pemain, langkah);
 }
 std::string MoveCard::getDeskripsi() const {
@@ -19,7 +20,7 @@ std::string MoveCard::getNilaiState() const {
 
 DiscountCard::DiscountCard(int persen) : KartuKemampuanSpesial("DiscountCard"), persenDiskon(persen), sisaDurasi(0) {}
 void DiscountCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[DiscountCard] Diskon " << persenDiskon << "% aktif. Berlaku selama 1 giliran ini.\n";
+    OutputHandler::cetakEfekKartu("DiscountCard", "Diskon " + std::to_string(persenDiskon) + "% aktif. Berlaku selama 1 giliran ini.");
     pemain.setDiscountAktif(true, persenDiskon);
     sisaDurasi = 1;
     (void)svc;
@@ -36,7 +37,7 @@ std::string DiscountCard::getSisaDurasiState() const {
 
 ShieldCard::ShieldCard() : KartuKemampuanSpesial("ShieldCard") {}
 void ShieldCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[ShieldCard] Perisai aktif! Kebal dari semua tagihan " << "dan sanksi selama giliran ini.\n";
+    OutputHandler::cetakEfekKartu("ShieldCard", "Perisai aktif! Kebal dari semua tagihan dan sanksi selama giliran ini.");
     pemain.setShieldAktif(true);
     (void)svc;
 }
@@ -58,7 +59,7 @@ std::string TeleportCard::getDeskripsi() const {
 
 LassoCard::LassoCard() : KartuKemampuanSpesial("LassoCard") {}
 void LassoCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[LassoCard] Menarik pemain yang berada paling dekat " << "di depan kamu ke posisi kamu.\n";
+    OutputHandler::cetakEfekKartu("LassoCard", "Menarik pemain yang berada paling dekat di depan kamu ke posisi kamu.");
     // svc mencari pemain aktif yang terdekat
     svc.pullPlayerAhead(pemain);
 }
@@ -68,7 +69,7 @@ std::string LassoCard::getDeskripsi() const {
 
 DemolitionCard::DemolitionCard() : KartuKemampuanSpesial("DemolitionCard") {}
 void DemolitionCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[DemolitionCard] Hancurkan semua bangunan milik pemain lawan.\n";
+    OutputHandler::cetakEfekKartu("DemolitionCard", "Hancurkan semua bangunan milik pemain lawan.");
     // svc menampilkan daftar pemain dan properti bergambar, lalu dieksekusi
     svc.demolishOpponentProperty(pemain);
 }
@@ -79,7 +80,7 @@ std::string DemolitionCard::getDeskripsi() const {
 
 RotasiKartuCard::RotasiKartuCard() : KartuKemampuanSpesial("RotasiKartuCard") {}
 void RotasiKartuCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[RotasiKartuCard] Semua kartu di tangan setiap pemain " << "berputar ke pemain berikutnya!\n";
+    OutputHandler::cetakEfekKartu("RotasiKartuCard", "Semua kartu di tangan setiap pemain berputar ke pemain berikutnya!");
     svc.rotateAllHandCards(pemain);
 }
 std::string RotasiKartuCard::getDeskripsi() const {
@@ -88,7 +89,7 @@ std::string RotasiKartuCard::getDeskripsi() const {
 
 ReverseCard::ReverseCard() : KartuKemampuanSpesial("ReverseCard") {}
 void ReverseCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[ReverseCard] Arah urutan giliran dibalik!\n";
+    OutputHandler::cetakEfekKartu("ReverseCard", "Arah urutan giliran dibalik!");
     // di svc, TurnController::reverseOrder()
     svc.reverseTurnOrder(pemain);
 }
@@ -98,7 +99,7 @@ std::string ReverseCard::getDeskripsi() const {
 
 PenjaraKanCard::PenjaraKanCard() : KartuKemampuanSpesial("PenjaraKanCard") {}
 void PenjaraKanCard::gunakan(Pemain& pemain, PlayerActionService& svc) {
-    std::cout << "[PenjaraKanCard] Pilih pemain lawan yang ingin dipenjara.\n";
+    OutputHandler::cetakEfekKartu("PenjaraKanCard", "Pilih pemain lawan yang ingin dipenjara.");
     svc.jailOpponent(pemain);
 }
 std::string PenjaraKanCard::getDeskripsi() const {
