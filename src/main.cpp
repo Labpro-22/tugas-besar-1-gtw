@@ -100,6 +100,8 @@ int main() {
             &turnIdxRef
         );
         svc->setDadu(dadu);
+        int& globalTurnRef = engine.getCurrentGlobalTurnRef();
+        svc->setCurrentGlobalTurnRef(&globalTurnRef);
         engine.setActionService(svc);
 
         engine.startGame();

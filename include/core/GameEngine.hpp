@@ -107,6 +107,7 @@ public :
 
     int getCurrentGlobalTurn() const { return currentGlobalTurn; }
     void setCurrentGlobalTurn(int turn) { this->currentGlobalTurn = turn; }
+    int& getCurrentGlobalTurnRef() { return currentGlobalTurn; }
 
     bool isArahNormalTurn() const { return arahNormalTurn; }
     void setArahNormalTurn(bool arah) { this->arahNormalTurn = arah; }

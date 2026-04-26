@@ -31,6 +31,7 @@ private:
     std::vector<Pemain*>* daftarPemain;
     bool arahNormal; // arah giliran bermain, kalau true = normal, false = reverse
     int* currentTurnIdx; // turn index saat ini untuk reverse
+    int* currentGlobalTurn;
 
 public:
     PlayerActionService(
@@ -83,4 +84,5 @@ public:
     ConfigData* getConfig() { return config; }
     void setDadu(Dadu* d) { dadu = d; }
     Dadu* getDadu() const { return dadu; }
+    void setCurrentGlobalTurnRef(int* turn) { currentGlobalTurn = turn; }
 };

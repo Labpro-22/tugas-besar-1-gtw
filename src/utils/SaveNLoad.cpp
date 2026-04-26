@@ -13,6 +13,34 @@
 
 using namespace std;
 
+namespace {
+KartuKemampuanSpesial* createSkillCardFromState(const std::string& jenisKartu, std::stringstream& css) {
+    if (jenisKartu == "MoveCard") {
+        int langkah = 1;
+        css >> langkah;
+        return new MoveCard(langkah);
+    }
+    if (jenisKartu == "DiscountCard") {
+        int persen = 30;
+        int durasi = 0;
+        css >> persen;
+        auto* dc = new DiscountCard(persen);
+        if (css >> durasi) {
+            dc->setSisaDurasi(durasi);
+        }
+        return dc;
+    }
+    if (jenisKartu == "ShieldCard") return new ShieldCard();
+    if (jenisKartu == "TeleportCard") return new TeleportCard();
+    if (jenisKartu == "LassoCard") return new LassoCard();
+    if (jenisKartu == "DemolitionCard") return new DemolitionCard();
+    if (jenisKartu == "RotasiKartuCard") return new RotasiKartuCard();
+    if (jenisKartu == "ReverseCard") return new ReverseCard();
+    if (jenisKartu == "PenjaraKanCard") return new PenjaraKanCard();
+    return nullptr;
+}
+}
+
 void SaveNLoad::loadGameState(GameEngine& game, string filename) {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -62,35 +90,7 @@ void SaveNLoad::loadGameState(GameEngine& game, string filename) {
             stringstream css(line);
             string jenisKartu;
             css >> jenisKartu;
-            
-            // Factory sederhana untuk memuat kartu dari tipe string
-            KartuKemampuanSpesial* kartu = nullptr;
-            if (jenisKartu == "MoveCard") {
-                int langkah = 1;
-                if (css >> langkah) kartu = new MoveCard(langkah);
-                else kartu = new MoveCard(1); // fallback
-            } else if (jenisKartu == "DiscountCard") {
-                int persen = 30;
-                int durasi = 1;
-                css >> persen >> durasi;
-                auto dc = new DiscountCard(persen);
-                dc->setSisaDurasi(durasi);
-                kartu = dc;
-            } else if (jenisKartu == "ShieldCard") {
-                kartu = new ShieldCard();
-            } else if (jenisKartu == "TeleportCard") {
-                kartu = new TeleportCard();
-            } else if (jenisKartu == "LassoCard") {
-                kartu = new LassoCard();
-            } else if (jenisKartu == "DemolitionCard") {
-                kartu = new DemolitionCard();
-            } else if (jenisKartu == "RotasiKartuCard") {
-                kartu = new RotasiKartuCard();
-            } else if (jenisKartu == "ReverseCard") {
-                kartu = new ReverseCard();
-            } else if (jenisKartu == "PenjaraKanCard") {
-                kartu = new PenjaraKanCard();
-            }
+            KartuKemampuanSpesial* kartu = createSkillCardFromState(jenisKartu, css);
 
             if (kartu) {
                 // Data save dianggap valid → bypass tambahKartu() (yang butuh deckSkill)
@@ -189,10 +189,22 @@ void SaveNLoad::loadGameState(GameEngine& game, string filename) {
     // <STATE_DECK>
     if (!getline(file, line)) throw FileTidakValidException(); // File rusak atau format tidak dikenali
     int numDeck = stoi(line);
-    // Untuk saat ini kita lewatkan saja karena instansiasi deck butuh pointer Kartu asli
+    auto* loadedDeckSkill = new DeckKartu<KartuKemampuanSpesial>();
     for (int i = 0; i < numDeck; i++) {
-        getline(file, line);
+        if (!getline(file, line)) throw FileTidakValidException();
+        std::stringstream dss(line);
+        std::string jenisKartu;
+        dss >> jenisKartu;
+        KartuKemampuanSpesial* kartu = createSkillCardFromState(jenisKartu, dss);
+        if (kartu) {
+            loadedDeckSkill->tambahKeKartu(kartu);
+        }
     }
+    if (game.getDeckSkill()) {
+        // old deck tidak dipakai lagi setelah load state; diganti dengan deck dari save file
+        // (lifetime dibersihkan saat game selesai)
+    }
+    game.setDeckSkill(loadedDeckSkill);
 
     // <STATE_LOG>
     if (!getline(file, line)) throw FileTidakValidException(); // File rusak atau format tidak dikenali
@@ -252,18 +264,17 @@ void SaveNLoad::saveGameState(GameEngine& game, string filename) {
         // <JENIS_KARTU> <NILAI_KARTU>
         for (auto* kartu : kartuTangan) {
             string namaKartu = kartu->getNamaKartu();
-            string nilaiKartu = "";
-            
-            // Format spesifik nilai kartu jika ada
-            if (namaKartu == "MoveCard") {
-                // Asumsi bisa mendapatkan langkah dari kartu, untuk stub pakai 1
-                nilaiKartu = " 1"; // Harus diakses dari getter jika ada
-            } else if (namaKartu == "DiscountCard") {
-                nilaiKartu = " 30"; // Stub
+            string nilaiKartu = kartu->getNilaiState();
+            string sisaDurasi = kartu->getSisaDurasiState();
+
+            string lineCard = namaKartu;
+            if (!nilaiKartu.empty()) {
+                lineCard += " " + nilaiKartu;
             }
-            // Karena spesifikasi meminta nilai dikosongkan jika tidak ada, 
-            // formatnya adalah string kosong jika tidak ada nilai.
-            lines.push_back(namaKartu + nilaiKartu);
+            if (!sisaDurasi.empty()) {
+                lineCard += " " + sisaDurasi;
+            }
+            lines.push_back(lineCard);
         }
     }
 
@@ -324,10 +335,18 @@ void SaveNLoad::saveGameState(GameEngine& game, string filename) {
         lines.push_back(kode + " " + jenis + " " + pemilik + " " + statusProp + " " + to_string(fmult) + " " + to_string(fdur) + " " + nBangunan);
     }
 
-    // <STATE_DECK>
-    // Asumsi Deck Skill ada
-    if (game.getDeckKartu() && false) { // Skip dulu sementara tidak ada DeckKartuKemampuanSpesial
-        // ...
+    // <STATE_DECK> (deck kartu kemampuan spesial)
+    if (game.getDeckSkill()) {
+        const auto& tumpukanDeck = game.getDeckSkill()->getTumpukan();
+        lines.push_back(to_string(tumpukanDeck.size()));
+        for (auto* kartu : tumpukanDeck) {
+            string lineDeck = kartu->getNamaKartu();
+            string nilai = kartu->getNilaiState();
+            string durasi = kartu->getSisaDurasiState();
+            if (!nilai.empty()) lineDeck += " " + nilai;
+            if (!durasi.empty()) lineDeck += " " + durasi;
+            lines.push_back(lineDeck);
+        }
     } else {
         lines.push_back("0");
     }

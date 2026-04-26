@@ -40,11 +40,13 @@ PlayerActionService::PlayerActionService(
     logger(log),
     daftarPemain(pemain),
     arahNormal(true),
-    currentTurnIdx(turnIdx) {}
+    currentTurnIdx(turnIdx),
+    currentGlobalTurn(nullptr) {}
 
 void PlayerActionService::logAksi(Pemain& pemain, const std::string& aksi, const std::string& detail) {
     if (logger) {
-        logger->tambahLog(LogTransaksiEntry(0, pemain.getUsername(), aksi, detail));
+        int ronde = (currentGlobalTurn != nullptr) ? *currentGlobalTurn : 0;
+        logger->tambahLog(LogTransaksiEntry(ronde, pemain.getUsername(), aksi, detail));
     }
 }
 
