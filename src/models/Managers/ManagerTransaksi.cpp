@@ -4,21 +4,36 @@
 #include "core/BangkrutDanEndGame.hpp"
 #include "utils/LogTransaksiGame.hpp"
 #include "utils/NimonspoliException.hpp"
+#include "models/Petak/PetakLahan.hpp"
+#include "models/Managers/ManagerLelang.hpp"
 #include <iostream>
 
 ManagerTransaksi::ManagerTransaksi(LogTransaksiGame* log, std::vector<Pemain*>* pemain) 
     : logger(log), daftarPemain(pemain) {}
 
 void ManagerTransaksi::beriSemuaAset(Pemain* asal, Pemain* tujuan) {
+    std::vector<PetakProperti*> asetBakalDipindah = asal->getAsetPemain();
     if (tujuan) {
         *tujuan += asal->getSaldo();
-        for (auto aset : asal->getAsetPemain()) {
+        for (auto aset : asetBakalDipindah) {
+            asal->hapusAset(aset);
             aset->setPemilik(tujuan);
+            tujuan->tambahAset(aset);
         }
     } else {
-        for (auto aset : asal->getAsetPemain()) {
+        ManagerLelang lelang(this);
+        for (auto aset : asetBakalDipindah) {
+            asal->hapusAset(aset);
             aset->setPemilik(nullptr);
             aset->setStatus(PetakProperti::StatusProperti::BANK);
+            
+            PetakLahan* street = dynamic_cast<PetakLahan*>(aset);
+            if (street) {
+                while (street->getJumlahBangunan() > 0) {
+                    street->turunkanBangunan();
+                }
+            }
+            lelang.mulaiLelang(aset, *daftarPemain, asal);
         }
     }
 }
