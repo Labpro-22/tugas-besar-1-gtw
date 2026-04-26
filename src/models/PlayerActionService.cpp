@@ -212,28 +212,94 @@ void PlayerActionService::gadaiProperti(Pemain& pemain) {
     std::vector<PetakProperti*> bisaDigadai;
     for (PetakProperti* prop : pemain.getAsetPemain()) {
         if (prop->getStatus() == PetakProperti::StatusProperti::OWNED) {
-            PetakLahan* street = dynamic_cast<PetakLahan*>(prop);
-            if (!street || street->getJumlahBangunan() == 0) {
-                bisaDigadai.push_back(prop);
-            }
+            bisaDigadai.push_back(prop);
         }
     }
     if (bisaDigadai.empty()) {
-        OutputHandler::cetakError("Tidak ada properti yang bisa digadai.");
+        OutputHandler::cetakError("Tidak ada properti yang dapat digadaikan saat ini.");
         return;
     }
-    OutputHandler::cetakPesan("Pilih properti yang ingin digadai:");
+    OutputHandler::cetakPesan("=== Properti yang Dapat Digadaikan ===");
     for (size_t i = 0; i < bisaDigadai.size(); ++i) {
-        OutputHandler::cetakPesan("  " + std::to_string(i+1) + ". " + bisaDigadai[i]->getNama() + " (" + bisaDigadai[i]->getKode() + ") — Nilai: M" + std::to_string(bisaDigadai[i]->getNilaiGadai()));
+        std::string warnaOrType = "";
+        PetakLahan* street = dynamic_cast<PetakLahan*>(bisaDigadai[i]);
+        if (street) {
+            warnaOrType = "[" + street->getWarnaString() + "] ";
+        } else if (dynamic_cast<PetakStasiun*>(bisaDigadai[i])) {
+            warnaOrType = "[STASIUN] ";
+        } else if (dynamic_cast<PetakUtilitas*>(bisaDigadai[i])) {
+            warnaOrType = "[UTILITAS] ";
+        }
+        OutputHandler::cetakPesan(std::to_string(i+1) + ". " + bisaDigadai[i]->getNama() + " (" + bisaDigadai[i]->getKode() + ") " + warnaOrType + "Nilai Gadai: M" + std::to_string(bisaDigadai[i]->getNilaiGadai()));
     }
-    int pilihan = InputHandler::promptAngka("Pilih (1-" + std::to_string(bisaDigadai.size()) + ", 0 batal): ", 0, bisaDigadai.size());
+    int pilihan = InputHandler::promptAngka("Pilih nomor properti (0 untuk batal): ", 0, bisaDigadai.size());
     if (pilihan == 0) return;
     
     PetakProperti* prop = bisaDigadai[pilihan - 1];
+    
+    PetakLahan* street = dynamic_cast<PetakLahan*>(prop);
+    if (street) {
+        std::vector<PetakLahan*> group = managerProperti->getPropertiByGrup(street->getWarnaString());
+        bool hasBuildings = false;
+        for (PetakLahan* peer : group) {
+            if (peer->getJumlahBangunan() > 0) {
+                hasBuildings = true;
+                break;
+            }
+        }
+        
+        if (hasBuildings) {
+            OutputHandler::cetakError(prop->getNama() + " tidak dapat digadaikan!");
+            OutputHandler::cetakPesan("Masih terdapat bangunan di color group [" + street->getWarnaString() + "].");
+            OutputHandler::cetakPesan("Bangunan harus dijual terlebih dahulu.");
+            OutputHandler::cetakPesan("Daftar bangunan di color group [" + street->getWarnaString() + "]:");
+            int totalUangBangunan = 0;
+            int displayIdx = 1;
+            for (size_t k = 0; k < group.size(); ++k) {
+                PetakLahan* peer = group[k];
+                if (peer->getJumlahBangunan() > 0) {
+                    int n_bangun = peer->getJumlahBangunan();
+                    int uang_kembali = n_bangun * (peer->getHargaBangun() / 2);
+                    totalUangBangunan += uang_kembali;
+                    std::string target = peer->punyaHotel() ? "1 hotel" : std::to_string(n_bangun) + " rumah";
+                    OutputHandler::cetakPesan(std::to_string(displayIdx) + ". " + peer->getNama() + " (" + peer->getKode() + ") - " + target + " -> Nilai jual bangunan: M" + std::to_string(uang_kembali));
+                    displayIdx++;
+                }
+            }
+            
+            std::string confirm = InputHandler::promptString("Jual semua bangunan color group [" + street->getWarnaString() + "]? (y/n): ");
+            if (confirm == "y" || confirm == "Y") {
+                for (PetakLahan* peer : group) {
+                    if (peer->getJumlahBangunan() > 0) {
+                        int n_bangun = peer->getJumlahBangunan();
+                        int uang_kembali = n_bangun * (peer->getHargaBangun() / 2);
+                        while (peer->getJumlahBangunan() > 0) {
+                            peer->turunkanBangunan();
+                        }
+                        OutputHandler::cetakPesan("Bangunan " + peer->getNama() + " terjual. Kamu menerima M" + std::to_string(uang_kembali) + ".");
+                    }
+                }
+                managerTransaksi->transferMoney(nullptr, &pemain, totalUangBangunan);
+                OutputHandler::cetakPesan("Uang kamu sekarang: M" + std::to_string(pemain.getSaldo()));
+                logAksi(pemain, "JUAL_BANGUNAN", street->getWarnaString() + " (+" + std::to_string(totalUangBangunan) + ")");
+                
+                std::string confLanjut = InputHandler::promptString("Lanjut menggadaikan " + prop->getNama() + "? (y/n): ");
+                if (confLanjut != "y" && confLanjut != "Y") {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+    }
+
     prop->gadai();
     int nilaiGadai = prop->getNilaiGadai();
     managerTransaksi->transferMoney(nullptr, &pemain, nilaiGadai);
-    OutputHandler::cetakPesan(pemain.getUsername() + " menggadaikan " + prop->getNama() + " dan mendapat M" + std::to_string(nilaiGadai));
+    OutputHandler::cetakPesan(prop->getNama() + " berhasil digadaikan.");
+    OutputHandler::cetakPesan("Kamu menerima M" + std::to_string(nilaiGadai) + " dari Bank.");
+    OutputHandler::cetakPesan("Uang kamu sekarang: M" + std::to_string(pemain.getSaldo()));
+    OutputHandler::cetakPesan("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
     logAksi(pemain, "GADAI", prop->getKode() + " (+" + std::to_string(nilaiGadai) + ")");
 }
 
