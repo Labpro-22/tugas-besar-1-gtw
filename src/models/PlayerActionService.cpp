@@ -1,5 +1,6 @@
 #include "models/PlayerActionService.hpp"
 #include "models/Properti/ManagerProperti.hpp"
+#include "models/Kartu/Kartu.hpp"
 #include "models/Pemain.hpp"
 #include "utils/LogTransaksiGame.hpp"
 #include "utils/NimonspoliException.hpp"
@@ -244,4 +245,11 @@ void PlayerActionService::reverseTurnOrder(Pemain& pemain) {
     arahNormal = !arahNormal;
     std::cout << "[ReverseCard] Urutan giliran kini " << (arahNormal ? "normal (searah jarum jam).\n" : "terbalik!\n");
     logAksi(pemain, "KARTU", arahNormal ? "ReverseCard (normal)" : "ReverseCard (terbalik)");
+}
+
+void PlayerActionService::simpanKartuBebasPenjara(Pemain& pemain, Kartu* kartu) {
+    pemain.setPunyaKartuBebasPenjara(true);
+    std::cout << "Kartu Bebas Penjara tersimpan di tangan " << pemain.getUsername() << ".\n";
+    logAksi(pemain, "KARTU", "KartuBebasPenjara disimpan di tangan");
+    (void)kartu;
 }

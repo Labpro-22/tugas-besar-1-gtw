@@ -34,4 +34,5 @@ public:
     KartuBebasPenjara() : KartuKesempatan("Bebas dari Penjara.") {}
     ~KartuBebasPenjara() = default;
     void jalankanEfek(Pemain& pemain, PlayerActionService& svc) override;
+    bool harusDisimpan() const { return true; }
 };

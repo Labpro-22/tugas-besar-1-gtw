@@ -20,13 +20,6 @@ void KartuMasukPenjara::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
 }
 
 void KartuBebasPenjara::jalankanEfek(Pemain& pemain, PlayerActionService& svc) {
-    if (pemain.getStatus() == StatusPemain::JAILED) {
-        std::cout << "Kartu: \"Bebas dari Penjara.\"\n";
-        std::cout << "Kamu dibebaskan dari penjara!\n";
-        svc.escapeFromJailByCard(pemain);
-    } else {
-        std::cout << "Kartu: \"Bebas dari Penjara.\" (disimpan untuk digunakan nanti)\n";
-        // kartu akan dikembalikan ke tangan
-    }
-    (void)svc;
+    // kartu ini tidak langsung dieksekusi saat diambil dari deck
+    (void)pemain; (void)svc;
 }

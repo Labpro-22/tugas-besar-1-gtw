@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Pemain::Pemain(const std::string& username, int saldoAwal) : username(username), posisi(0), saldo(saldoAwal), status(StatusPemain::ACTIVE), shieldAktif(false), discountAktif(false), persenDiskon(0), sudahPakaiSkill(false), percobaanKeluarPenjara(0) {};
+Pemain::Pemain(const std::string& username, int saldoAwal) : username(username), posisi(0), saldo(saldoAwal), status(StatusPemain::ACTIVE), shieldAktif(false), discountAktif(false), persenDiskon(0), sudahPakaiSkill(false), percobaanKeluarPenjara(0), punyaKartuBebasPenjara(false) {};
 Pemain::~Pemain() {};
 
 // operator overload 

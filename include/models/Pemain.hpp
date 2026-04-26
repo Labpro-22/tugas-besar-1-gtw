@@ -25,6 +25,7 @@ private:
     int  persenDiskon;
     bool sudahPakaiSkill; // reset tiap awal giliran
     int percobaanKeluarPenjara; // 0-3, reset saat bebas
+    bool punyaKartuBebasPenjara;
 
 public:
     Pemain(const std::string& username, int saldoAwal);
@@ -72,4 +73,7 @@ public:
     void setKartuDiTangan(const std::vector<KartuKemampuanSpesial*>& kartu) {
         kartuDiTangan = kartu;
     }
+
+    void setPunyaKartuBebasPenjara(bool val) { punyaKartuBebasPenjara = val; }
+    bool isPunyaKartuBebasPenjara() const { return punyaKartuBebasPenjara; }
 };

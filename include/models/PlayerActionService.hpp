@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "models/Petak/ManagerFestival.hpp"
 
 class Pemain;
 class PropertiStreet;
@@ -8,7 +9,6 @@ class Properti;
 class MovementController;
 class ManagerPenjara;
 class ManagerProperti;
-class ManagerFestival;
 class LogTransaksiGame;
 
 class PlayerActionService {
@@ -45,6 +45,7 @@ public:
     /** Eksekusi bangun rumah/hotel pada properti street. */
     void bangunProperti(Pemain& pemain, PropertiStreet& properti);
 
+    void simpanKartuBebasPenjara(Pemain& pemain, Kartu* kartu);
     void demolishOpponentProperty(Pemain& pemain); // untuk DemolitionCard
     void pullPlayerAhead(Pemain& pemain); // untuk LassoCard
     void rotateAllHandCards(Pemain& pemain); // untuk bonus RotasiKartuCard
