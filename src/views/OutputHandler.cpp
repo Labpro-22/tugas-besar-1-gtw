@@ -122,28 +122,251 @@ void OutputHandler::cetakPapan(const Papan& papan, const std::vector<Pemain*>& d
         std::cout << "Papan belum diinisialisasi.\n";
         return;
     }
-    
-    // Tampilkan header papan (simplified version)
-    std::cout << "\n" << "+----------+----------+----------+----------+\n";
-    std::cout << "|" << std::setw(40) << std::setfill(' ') << "NIMONSPOLI" << "|\n";
-    std::cout << "+----------+----------+----------+----------+\n";
-    std::cout << "\n";
-    
-    // Informasi giliran
-    std::cout << "TURN " << currentTurn << " / " << maxTurn << "\n\n";
-    
-    // Tampilkan daftar pemain dan posisinya
-    for (size_t i = 0; i < daftarPemain.size(); i++) {
-        const Pemain* p = daftarPemain[i];
-        Petak* petak = const_cast<Papan&>(papan).getPetak(p->getPosisi());
-        if (petak) {
-            std::cout << "P" << (i+1) << ": " << p->getUsername() 
-                      << " - Saldo: M" << p->getSaldo() 
-                      << " - Posisi: " << petak->getKode() << "\n";
+
+    const int total = papan.getTotalPetak();
+    const int cellWidth = 10;
+
+    auto padRight = [](const std::string& s, size_t width) {
+        if (s.size() >= width) return s.substr(0, width);
+        return s + std::string(width - s.size(), ' ');
+    };
+
+    auto joinNumbers = [](const std::vector<int>& nums, const std::string& sep) {
+        std::string out;
+        for (size_t i = 0; i < nums.size(); ++i) {
+            if (i > 0) out += sep;
+            out += std::to_string(nums[i]);
+        }
+        return out;
+    };
+
+    auto shortColor = [](const std::string& warna) {
+        if (warna == "COKLAT") return std::string("CK");
+        if (warna == "BIRU_MUDA") return std::string("BM");
+        if (warna == "MERAH_MUDA" || warna == "PINK") return std::string("PK");
+        if (warna == "ABU_ABU") return std::string("AB");
+        if (warna == "ORANGE") return std::string("OR");
+        if (warna == "MERAH") return std::string("MR");
+        if (warna == "KUNING") return std::string("KN");
+        if (warna == "HIJAU") return std::string("HJ");
+        if (warna == "BIRU_TUA") return std::string("BT");
+        return std::string("DF");
+    };
+
+    auto getPetakByIndex = [&](int idx) -> Petak* {
+        return const_cast<Papan&>(papan).getPetak(idx);
+    };
+
+    // Peta indeks pemain untuk label P1-P4.
+    std::map<Pemain*, int> playerIndex;
+    for (size_t i = 0; i < daftarPemain.size(); ++i) {
+        if (daftarPemain[i]) playerIndex[daftarPemain[i]] = static_cast<int>(i) + 1;
+    }
+
+    int penIndex = -1;
+    for (int i = 1; i <= total; ++i) {
+        Petak* petak = getPetakByIndex(i);
+        if (petak && petak->getKode() == "PEN") {
+            penIndex = i;
+            break;
         }
     }
-    
-    std::cout << "\n";
+
+    std::vector<std::vector<int>> tokens(total + 1);
+    std::vector<int> jailIn;
+    std::vector<int> jailVisit;
+    for (size_t i = 0; i < daftarPemain.size(); ++i) {
+        Pemain* p = daftarPemain[i];
+        if (!p || p->getStatus() == StatusPemain::BANKRUPT) continue;
+        int pos = p->getPosisi();
+        if (pos < 1 || pos > total) pos = 1;
+        int marker = static_cast<int>(i) + 1;
+        if (pos == penIndex && penIndex != -1) {
+            if (p->getStatus() == StatusPemain::JAILED) jailIn.push_back(marker);
+            else jailVisit.push_back(marker);
+        } else {
+            tokens[pos].push_back(marker);
+        }
+    }
+
+    auto formatCodeLine = [&](Petak* petak) {
+        if (!petak) return std::string(cellWidth, ' ');
+        std::string warna = "DEFAULT";
+        std::string tag = "DF";
+        if (auto prop = dynamic_cast<PetakProperti*>(petak)) {
+            const PropertiConfig* cfg = prop->getConfigProperti();
+            if (cfg) warna = cfg->getWarna();
+            tag = shortColor(warna);
+        }
+        std::string label = "[" + tag + "] " + petak->getKode();
+        std::string visible = padRight(label, cellWidth);
+        if (dynamic_cast<PetakLahan*>(petak)) {
+            return getColorCode(warna) + visible + resetColor();
+        }
+        return visible;
+    };
+
+    auto formatOwnerLine = [&](Petak* petak) {
+        if (!petak) return std::string(cellWidth, ' ');
+        auto prop = dynamic_cast<PetakProperti*>(petak);
+        if (!prop) return std::string(cellWidth, ' ');
+
+        std::string owner = "BANK";
+        Pemain* pemilik = prop->getPemilik();
+        if (pemilik) {
+            auto it = playerIndex.find(pemilik);
+            owner = (it != playerIndex.end()) ? ("P" + std::to_string(it->second)) : "P?";
+        }
+        if (prop->getStatus() == PetakProperti::StatusProperti::MORTGAGED) {
+            owner += " M";
+        }
+
+        std::string building;
+        if (auto street = dynamic_cast<PetakLahan*>(prop)) {
+            if (street->punyaHotel()) building = "*";
+            else if (street->getJumlahBangunan() > 0) building = std::string(street->getJumlahBangunan(), '^');
+        }
+        if (!building.empty()) owner += " " + building;
+        return padRight(owner, cellWidth);
+    };
+
+    auto formatTokenLine = [&](int idx) {
+        if (idx < 1 || idx > total) return std::string(cellWidth, ' ');
+        std::string out;
+        if (idx == penIndex && penIndex != -1) {
+            std::string in = joinNumbers(jailIn, ",");
+            std::string visit = joinNumbers(jailVisit, ",");
+            if (!in.empty()) out += "I" + in;
+            if (!visit.empty()) {
+                if (!out.empty()) out += " ";
+                out += "V" + visit;
+            }
+        } else {
+            out = joinNumbers(tokens[idx], " ");
+        }
+        return padRight(out, cellWidth);
+    };
+
+    if (total < 4 || (total - 4) % 4 != 0) {
+        std::cout << "\nPapan tidak berbentuk persegi standar. Menampilkan daftar petak:\n";
+        for (int i = 1; i <= total; ++i) {
+            Petak* petak = getPetakByIndex(i);
+            if (!petak) continue;
+            std::string info = petak->getKode() + " - " + petak->getNama();
+            if (auto prop = dynamic_cast<PetakProperti*>(petak)) {
+                std::string owner = formatOwnerLine(prop);
+                info += " | " + owner;
+            }
+            std::string tok;
+            if (i == penIndex && penIndex != -1) {
+                std::string in = joinNumbers(jailIn, ",");
+                std::string visit = joinNumbers(jailVisit, ",");
+                if (!in.empty()) tok += "I" + in;
+                if (!visit.empty()) {
+                    if (!tok.empty()) tok += " ";
+                    tok += "V" + visit;
+                }
+            } else {
+                tok = joinNumbers(tokens[i], " ");
+            }
+            if (!tok.empty()) info += " | Bidak: " + tok;
+            std::cout << std::setw(2) << i << ". " << info << "\n";
+        }
+        std::cout << "\nTURN " << currentTurn << " / " << maxTurn << "\n\n";
+        return;
+    }
+
+    const int perSide = (total - 4) / 4;
+    const int sideLen = perSide + 2;
+    const int totalWidth = sideLen * cellWidth + (sideLen + 1);
+    const int centerWidth = totalWidth - (cellWidth + 2) * 2;
+
+    auto buildBorder = [&](int cells) {
+        std::string line = "+";
+        for (int i = 0; i < cells; ++i) line += std::string(cellWidth, '-') + "+";
+        return line;
+    };
+
+    auto buildMiddleBorder = [&]() {
+        return "+" + std::string(cellWidth, '-') + "+" + std::string(centerWidth, ' ') + "+" + std::string(cellWidth, '-') + "+";
+    };
+
+    std::vector<int> top(sideLen);
+    std::vector<int> bottom(sideLen);
+    std::vector<int> left(perSide);
+    std::vector<int> right(perSide);
+
+    for (int i = 0; i < sideLen; ++i) {
+        top[i] = (2 * perSide + 3) + i;
+        bottom[i] = (perSide + 2) - i;
+    }
+    for (int i = 0; i < perSide; ++i) {
+        left[i] = (2 * perSide + 2) - i;
+        right[i] = (3 * perSide + 5) + i;
+    }
+
+    std::string fullBorder = buildBorder(sideLen);
+    std::string midBorder = buildMiddleBorder();
+
+    std::cout << "\n" << fullBorder << "\n";
+
+    std::string line;
+
+    line = "|";
+    for (int idx : top) line += formatCodeLine(getPetakByIndex(idx)) + "|";
+    std::cout << line << "\n";
+
+    line = "|";
+    for (int idx : top) line += formatOwnerLine(getPetakByIndex(idx)) + "|";
+    std::cout << line << "\n";
+
+    line = "|";
+    for (int idx : top) line += formatTokenLine(idx) + "|";
+    std::cout << line << "\n";
+
+    std::cout << (perSide > 0 ? midBorder : fullBorder) << "\n";
+
+    for (int i = 0; i < perSide; ++i) {
+        int leftIdx = left[i];
+        int rightIdx = right[i];
+
+        std::cout << "|" << formatCodeLine(getPetakByIndex(leftIdx)) << "|"
+                  << std::string(centerWidth, ' ') << "|"
+                  << formatCodeLine(getPetakByIndex(rightIdx)) << "|\n";
+
+        std::cout << "|" << formatOwnerLine(getPetakByIndex(leftIdx)) << "|"
+                  << std::string(centerWidth, ' ') << "|"
+                  << formatOwnerLine(getPetakByIndex(rightIdx)) << "|\n";
+
+        std::cout << "|" << formatTokenLine(leftIdx) << "|"
+                  << std::string(centerWidth, ' ') << "|"
+                  << formatTokenLine(rightIdx) << "|\n";
+
+        std::cout << midBorder << "\n";
+    }
+
+    line = "|";
+    for (int idx : bottom) line += formatCodeLine(getPetakByIndex(idx)) + "|";
+    std::cout << line << "\n";
+
+    line = "|";
+    for (int idx : bottom) line += formatOwnerLine(getPetakByIndex(idx)) + "|";
+    std::cout << line << "\n";
+
+    line = "|";
+    for (int idx : bottom) line += formatTokenLine(idx) + "|";
+    std::cout << line << "\n";
+
+    std::cout << fullBorder << "\n";
+
+    std::cout << "\nTURN " << currentTurn << " / " << maxTurn << "\n";
+    std::cout << "Legenda Kepemilikan & Status:\n";
+    std::cout << "P1-P" << daftarPemain.size() << " : Properti milik pemain\n";
+    std::cout << "M       : Properti digadai\n";
+    std::cout << "^..*    : Rumah/Hotel pada petak lahan\n";
+    std::cout << "I/V     : Tahanan (I) / Mampir (V) di PEN\n";
+    std::cout << "1-4     : Bidak pemain\n";
+    std::cout << "Kode warna: [CK]=Coklat [BM]=Biru Muda [PK]=Pink [OR]=Orange [MR]=Merah [KN]=Kuning [HJ]=Hijau [BT]=Biru Tua [AB]=Utilitas [DF]=Aksi\n\n";
 }
 
 void OutputHandler::cetakPropertiPemain(const Pemain* pemain, const ConfigData& config) {

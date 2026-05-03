@@ -3,6 +3,7 @@
 #include "models/Petak/PetakStasiun.hpp"
 #include "models/Petak/PetakUtilitas.hpp"
 #include "models/PlayerActionService.hpp"
+#include "views/OutputHandler.hpp"
 #include <iostream>
 
 PetakProperti::PetakProperti(int indeks, const std::string& kode, const std::string& nama, const PropertiConfig& config) : 
@@ -21,6 +22,7 @@ void PetakProperti::onLanded(Pemain& pemain, PlayerActionService& actionService)
         if (dynamic_cast<PetakStasiun*>(this) || dynamic_cast<PetakUtilitas*>(this)) {
             setPemilik(&pemain);
             pemain.tambahAset(this);
+            OutputHandler::cetakPesan("Belum ada yang menginjaknya duluan, " + nama + " kini menjadi milikmu!");
             actionService.logAksi(pemain, "BELI_OTOMATIS", kode + " kini milik " + pemain.getUsername());
             return;
         }

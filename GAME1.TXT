@@ -1,0 +1,142 @@
+aku suka oop
+6 15
+4
+kei 485 BGR ACTIVE
+3
+DiscountCard 20 0
+ReverseCard
+RotasiKartuCard
+helen 614 SBY ACTIVE
+2
+RotasiKartuCard
+LassoCard
+vr 217 PEN JAILED
+3
+MoveCard 12
+DemolitionCard
+ShieldCard
+fakhry 237 PEN JAILED
+2
+DiscountCard 50 0
+ReverseCard
+helen kei vr fakhry
+helen
+28
+GRT street BANK BANK 1 0 0
+TSK street BANK BANK 1 0 0
+GBR railroad fakhry OWNED 1 0 0
+BGR street helen OWNED 2 3 0
+DPK street helen OWNED 1 0 0
+BKS street helen OWNED 1 0 0
+MGL street BANK BANK 1 0 0
+PLN utility kei OWNED 1 0 0
+SOL street BANK BANK 1 0 0
+YOG street BANK BANK 1 0 0
+STB railroad fakhry OWNED 1 0 0
+MAL street kei OWNED 1 0 0
+SMG street fakhry OWNED 1 0 0
+SBY street helen OWNED 1 0 0
+MKS street BANK BANK 1 0 0
+BLP street kei OWNED 1 0 0
+MND street kei OWNED 1 0 0
+TUG railroad vr OWNED 1 0 0
+PLB street BANK BANK 1 0 0
+PKB street fakhry OWNED 1 0 0
+PAM utility fakhry OWNED 1 0 0
+MED street BANK BANK 1 0 0
+BDG street BANK BANK 1 0 0
+DEN street BANK BANK 1 0 0
+MTR street kei OWNED 1 0 0
+GUB railroad helen OWNED 1 0 0
+JKT street kei OWNED 1 0 0
+IKN street fakhry OWNED 1 0 0
+10
+TeleportCard
+PenjaraKanCard
+PenjaraKanCard
+DiscountCard 50 0
+TeleportCard
+DemolitionCard
+ShieldCard
+MoveCard 12
+MoveCard 1
+LassoCard
+78
+1 helen GERAK pindah ke indeks 7
+1 helen BELI BGR (-100)
+1 kei GERAK pindah ke indeks 13
+1 kei BELI_OTOMATIS PLN kini milik kei
+1 kei GERAK pindah ke indeks 25
+1 kei BELI MND (-240)
+1 kei PENJARA masuk penjara
+1 vr GERAK pindah ke indeks 3
+1 vr KARTU DANA_UMUM | Biaya dokter, bayar M700
+1 vr GERAK pindah ke indeks 5
+1 vr GERAK pindah ke indeks 13
+1 fakhry GERAK pindah ke indeks 7
+1 fakhry BAYAR_SEWA BGR M6
+1 fakhry GERAK pindah ke indeks 16
+1 fakhry BELI_OTOMATIS STB kini milik fakhry
+2 helen GERAK pindah ke indeks 9
+2 helen BELI DPK (-100)
+2 helen GERAK pindah ke indeks 16
+2 helen BAYAR_SEWA STB M25
+2 kei GERAK pindah ke indeks 13
+2 kei GERAK pindah ke indeks 17
+2 kei GERAK pindah ke indeks 24
+2 vr GERAK pindah ke indeks 23
+2 vr GERAK stasiun terdekat
+2 vr BELI_OTOMATIS TUG kini milik vr
+2 vr KARTU KESEMPATAN | Pergi ke stasiun terdekat.
+2 helen BAYAR_SEWA TUG M25
+2 vr KARTU LassoCard : tarik helen ke petak 26
+2 vr GERAK pindah ke indeks 31
+2 vr PENJARA masuk penjara
+2 fakhry GERAK pindah ke indeks 28
+2 fakhry BELI PKB (-260)
+2 fakhry GERAK pindah ke indeks 31
+2 fakhry PENJARA masuk penjara
+3 helen GERAK pindah ke indeks 36
+3 helen BELI_OTOMATIS GUB kini milik helen
+3 helen GERAK pindah ke indeks 39
+3 kei GERAK pindah ke indeks 35
+3 kei BELI MTR (-320)
+3 fakhry GERAK pindah ke indeks 19
+3 fakhry BELI SMG (-180)
+4 helen GO Menerima gaji GO M200
+4 helen GERAK pindah ke indeks 3
+4 helen KARTU DANA_UMUM | Ini adalah hari ulang tahun Anda. Dapatkan M100 dari setiap pemain
+4 kei GERAK pindah ke indeks 38
+4 vr GERAK pindah ke indeks 23
+4 vr PENJARA masuk penjara
+4 vr KARTU KESEMPATAN | Masuk Penjara.
+4 fakhry GERAK pindah ke indeks 29
+4 fakhry BELI_OTOMATIS PAM kini milik fakhry
+4 fakhry GERAK pindah ke indeks 40
+4 fakhry BELI IKN (-400)
+5 helen GERAK pindah ke indeks 8
+5 helen FESTIVAL BGR festival x2 durasi 3
+5 kei GO Menerima gaji GO M200
+5 kei GERAK pindah ke indeks 7
+5 kei BAYAR_SEWA BGR M12
+5 vr GERAK pindah ke indeks 17
+5 vr BAYAR_SEWA MAL M14
+5 vr GERAK pindah ke indeks 19
+5 vr BAYAR_SEWA SMG M14
+5 vr PENJARA masuk penjara
+5 fakhry GO Menerima gaji GO M200
+5 fakhry GERAK pindah ke indeks 6
+5 fakhry BELI_OTOMATIS GBR kini milik fakhry
+5 fakhry GERAK pindah ke indeks 9
+5 fakhry BAYAR_SEWA DPK M6
+6 helen GERAK pindah ke indeks 10
+6 helen BELI BKS (-120)
+6 helen BANGUN BKS (-20)
+6 helen BANGUN BKS (-20)
+6 helen JUAL_BANGUNAN BIRU_MUDA (+20)
+6 helen GADAI BGR (+80)
+6 helen TEBUS BGR (-100)
+6 fakhry PENJARA masuk penjara
+6 helen KARTU PenjaraKanCard fakhry
+6 helen GERAK pindah ke indeks 20
+6 helen BELI SBY (-200)

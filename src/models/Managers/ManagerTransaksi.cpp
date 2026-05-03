@@ -64,7 +64,7 @@ void ManagerTransaksi::transferMoney(Pemain* asal, Pemain* tujuan, int jumlah) {
             } else {
                 beriSemuaAset(asal, tujuan);
                 Kebangkrutan::declareBangkrut(asal);
-                throw NimonspoliException(101, "Pemain Bangkrut!"); // Throw custom exception agar game loop tau
+                // throw NimonspoliException(101, "Pemain Bangkrut!"); // Throw custom exception agar game loop tau
             }
         } else {
             *asal -= jumlah;
